@@ -1,7 +1,9 @@
+
+
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.jetbrains.kotlin.android)
-    id("com.google.gms.google-services")
+    alias(libs.plugins.android.application) // This alias should match your libs.versions.toml
+    alias(libs.plugins.jetbrains.kotlin.android) // Ensure the alias exists in your libs.versions.toml
+    id("com.google.gms.google-services") // Firebase plugin
 }
 
 android {
@@ -30,40 +32,57 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
     buildFeatures {
         compose = true
     }
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
     }
+
     packaging {
         resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/{AL2.0,LGPL2.1}" // Correct wildcard exclusion syntax
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF" // Fixed key from exclude to excludes
         }
     }
 }
 
 dependencies {
-    // Import the Firebase BoM
+    // Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
 
+    // Firebase Authentication
+    implementation("com.google.firebase:firebase-auth")
 
-    // TODO: Add the dependencies for Firebase products you want to use
-    // When using the BoM, don't specify versions in Firebase dependencies
+    // Firebase Analytics
     implementation("com.google.firebase:firebase-analytics")
+    implementation ("com.google.firebase:firebase-appcheck-playintegrity")
 
 
-    // Add the dependencies for any other desired Firebase products
-    // https://firebase.google.com/docs/android/setup#available-libraries
+    // Example: Firebase Firestore
+    // Uncomment if using Firestore
+    // implementation("com.google.firebase:firebase-firestore")
 
+    // AndroidX libraries
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    implementation("androidx.activity:activity-compose:1.8.0")
+    implementation("androidx.compose.ui:ui:1.6.0-alpha04")
+    implementation("androidx.compose.material3:material3:1.2.0-alpha05")
+    implementation("androidx.navigation:navigation-compose:2.7.2")
 
+    // UI and Compose libraries using aliases
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -72,6 +91,11 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+    // Ensure that libs.identity.doctypes.jvm exists in libs.versions.toml
+    implementation(libs.identity.doctypes.jvm)
+
+    // Testing dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
