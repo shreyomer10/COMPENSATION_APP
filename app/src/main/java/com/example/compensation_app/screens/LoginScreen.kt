@@ -1,0 +1,178 @@
+package com.example.compensation_app.screens
+
+import android.widget.Toast
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.example.compensation_app.Navigation.NavigationScreens
+import com.example.compensation_app.R
+import com.example.compensation_app.sendOTP
+import com.example.compensation_app.verifyOTP
+import com.google.firebase.auth.FirebaseAuth
+
+@Composable
+fun LoginScreen(navController: NavController) {
+    val auth = FirebaseAuth.getInstance()
+    var mobileNumber by remember { mutableStateOf("") }
+    var guardId by remember { mutableStateOf("") }
+    var otp by remember { mutableStateOf("") }
+    var verificationId by remember { mutableStateOf<String?>(null) }
+    var isOTPVerified by remember { mutableStateOf(false) }
+    var showToast by remember { mutableStateOf<String?>(null) }
+
+    val context = LocalContext.current
+
+    LaunchedEffect(showToast) {
+        showToast?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            showToast = null
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.logo),
+            contentDescription = "App Logo",
+            modifier = Modifier
+                .size(200.dp)
+                .padding(bottom = 30.dp)
+        )
+
+        Text(
+            text = "Compensation App",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Blue,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Text(
+            text = "Forest Guard Login",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        OutlinedTextField(
+            value = mobileNumber,
+            onValueChange = {
+                if (it.length <= 10 && it.all { char -> char.isDigit() }) {
+                    mobileNumber = it
+                }
+            },
+            label = { Text("Enter your mobile number") },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = guardId,
+            onValueChange = { guardId = it },
+            label = { Text("Enter your guard ID") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                if (mobileNumber.isNotEmpty() && guardId.isNotEmpty()) {
+                    val formattedMobileNumber = "+91$mobileNumber"
+                    sendOTP(auth, formattedMobileNumber, context) { id ->
+                        verificationId = id
+                    }
+                } else {
+                    showToast = "Please enter mobile number and guard ID"
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Blue)
+        ) {
+            Text(text = "Send OTP", color = Color.White)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = otp,
+            onValueChange = { otp = it },
+            label = { Text("Enter received OTP") },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                if (verificationId != null && otp.isNotEmpty()) {
+                    verifyOTP(auth, verificationId!!, otp, context) {
+                        isOTPVerified = true
+                        showToast = "OTP Verified"
+                        navController.navigate(NavigationScreens.HomeScreen.name) { // Replace "home_screen" with your home screen route
+                            popUpTo("login_screen") { inclusive = true }
+                        }
+                    }
+                } else {
+                    showToast = "Enter OTP to proceed"
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+        ) {
+            Text(text = "Proceed", color = Color.White)
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            TextButton(onClick = { /* TODO: Resend OTP */ }) {
+                Text(text = "Resend OTP", color = Color.Blue)
+            }
+
+            TextButton(onClick = { /* TODO: Need Help */ }) {
+                Text(text = "Need Help?", color = Color.Blue)
+            }
+        }
+    }
+}
