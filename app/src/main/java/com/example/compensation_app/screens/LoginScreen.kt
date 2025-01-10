@@ -38,7 +38,6 @@ import com.example.compensation_app.R
 import com.example.compensation_app.sendOTP
 import com.example.compensation_app.verifyOTP
 import com.google.firebase.auth.FirebaseAuth
-
 @Composable
 fun LoginScreen(navController: NavController) {
     val auth = FirebaseAuth.getInstance()
@@ -49,12 +48,28 @@ fun LoginScreen(navController: NavController) {
     var isOTPVerified by remember { mutableStateOf(false) }
     var showToast by remember { mutableStateOf<String?>(null) }
 
+    // State to handle OTP resend and countdown
+    var isOtpSent by remember { mutableStateOf(false) }
+    var timeLeft by remember { mutableStateOf(60) } // Time left for resend in seconds
     val context = LocalContext.current
 
     LaunchedEffect(showToast) {
         showToast?.let {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
             showToast = null
+        }
+    }
+
+    LaunchedEffect(isOtpSent) {
+        if (isOtpSent) {
+            // Start the countdown for 1 minute
+            for (i in 1..60) {
+                kotlinx.coroutines.delay(1000L)
+                timeLeft = 60 - i
+            }
+            // After 1 minute, re-enable the OTP resend button
+            isOtpSent = false
+            timeLeft = 60
         }
     }
 
@@ -118,12 +133,14 @@ fun LoginScreen(navController: NavController) {
                     sendOTP(auth, formattedMobileNumber, context) { id ->
                         verificationId = id
                     }
+                    isOtpSent = true // Mark OTP as sent
                 } else {
                     showToast = "Please enter mobile number and guard ID"
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Blue)
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
+            enabled = !isOtpSent // Disable button after OTP is sent
         ) {
             Text(text = "Send OTP", color = Color.White)
         }
@@ -146,7 +163,7 @@ fun LoginScreen(navController: NavController) {
                     verifyOTP(auth, verificationId!!, otp, context) {
                         isOTPVerified = true
                         showToast = "OTP Verified"
-                        navController.navigate(NavigationScreens.HomeScreen.name) { // Replace "home_screen" with your home screen route
+                        navController.navigate(NavigationScreens.HomeScreen.name) {
                             popUpTo("login_screen") { inclusive = true }
                         }
                     }
@@ -166,8 +183,21 @@ fun LoginScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            TextButton(onClick = { /* TODO: Resend OTP */ }) {
-                Text(text = "Resend OTP", color = Color.Blue)
+            TextButton(
+                onClick = {
+                    if (!isOtpSent) {
+                        if (mobileNumber.isNotEmpty() && guardId.isNotEmpty()) {
+                            val formattedMobileNumber = "+91$mobileNumber"
+                            sendOTP(auth, formattedMobileNumber, context) { id ->
+                                verificationId = id
+                            }
+                            isOtpSent = true // Mark OTP as sent
+                        }
+                    }
+                },
+                enabled = !isOtpSent // Disable the button if OTP is already sent
+            ) {
+                Text(text = if (isOtpSent) "Resend in $timeLeft sec" else "Resend OTP", color = Color.Blue)
             }
 
             TextButton(onClick = { /* TODO: Need Help */ }) {
