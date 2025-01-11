@@ -1,5 +1,6 @@
 package com.example.compensation_app.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -32,15 +33,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.compensation_app.Navigation.NavigationScreens
 import com.example.compensation_app.R
 import com.example.compensation_app.sendOTP
 import com.example.compensation_app.verifyOTP
+import com.example.compensation_app.viewmodel.GuardViewModel
 import com.google.firebase.auth.FirebaseAuth
 @Composable
 fun LoginScreen(navController: NavController) {
     val auth = FirebaseAuth.getInstance()
+    val viewModel:GuardViewModel= hiltViewModel()
     var mobileNumber by remember { mutableStateOf("") }
     var guardId by remember { mutableStateOf("") }
     var otp by remember { mutableStateOf("") }
@@ -52,6 +56,10 @@ fun LoginScreen(navController: NavController) {
     var isOtpSent by remember { mutableStateOf(false) }
     var timeLeft by remember { mutableStateOf(60) } // Time left for resend in seconds
     val context = LocalContext.current
+
+    var guardVerified by remember {
+        mutableStateOf(false)
+    }
 
     LaunchedEffect(showToast) {
         showToast?.let {
@@ -124,11 +132,40 @@ fun LoginScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth()
         )
 
+
         Spacer(modifier = Modifier.height(16.dp))
 
+
+        if(guardVerified){
+            Text(text = "*Guard is verified*",color = Color.Green)
+        }
         Button(
             onClick = {
-                if (mobileNumber.isNotEmpty() && guardId.isNotEmpty()) {
+                viewModel.verifyGuard(
+                    empId = guardId,
+                    mobileNumber = mobileNumber
+                ) { message, guard ->
+                    Log.d("VERIFIATION", "LoginScreen: $message , $guard")
+
+                    if (message == "Verified") {
+                        guardVerified = true
+                    } else {
+                        guardVerified=false
+                        showToast = "Please enter correct mobile number and guard ID"
+                    }
+
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
+        ) {
+            Text(text = "Verify Guard", color = Color.White)
+
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = {
+                if (mobileNumber.isNotEmpty() && guardId.isNotEmpty() && guardVerified) {
                     val formattedMobileNumber = "+91$mobileNumber"
                     sendOTP(auth, formattedMobileNumber, context) { id ->
                         verificationId = id

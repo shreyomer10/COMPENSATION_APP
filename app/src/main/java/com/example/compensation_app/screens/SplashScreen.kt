@@ -1,6 +1,8 @@
 package com.example.compensation_app.screens
 
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -29,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.R
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,6 +46,7 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(navController: NavController) {
+    val context= LocalContext.current
     // Scale animation for the logo
     val infiniteTransition = rememberInfiniteTransition()
     val imageScale by infiniteTransition.animateFloat(
@@ -61,13 +65,29 @@ fun SplashScreen(navController: NavController) {
         targetValue = if (startAnimation) 1f else 0f, // Adjust alpha for overlay
         animationSpec = tween(durationMillis = 1000, easing = LinearEasing)
     )
+    val sharedPreferences: SharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+    val isLoggedIn = sharedPreferences.getBoolean("is_logged_in", false)
 
-    LaunchedEffect(key1 = true) {
+    LaunchedEffect(Unit) {
         startAnimation = true
-        delay(1000) // Delay for the splash screen to show
-        navController.navigate(NavigationScreens.LoginScreen.name)
-
+        delay(1000)
+        if (isLoggedIn) {
+            // Navigate to the HomeScreen if user is logged in
+            navController.navigate(NavigationScreens.HomeScreen.name) {
+                popUpTo(NavigationScreens.LoginScreen.name) { inclusive = true }
+            }
+        } else {
+            // Navigate to the LoginScreen if user is not logged in
+            navController.navigate(NavigationScreens.LoginScreen.name)
+        }
     }
+
+//    LaunchedEffect(key1 = true) {
+//        startAnimation = true
+//        delay(1000) // Delay for the splash screen to show
+//        navController.navigate(NavigationScreens.LoginScreen.name)
+//
+//    }
 
     Box(
         contentAlignment = Alignment.Center,

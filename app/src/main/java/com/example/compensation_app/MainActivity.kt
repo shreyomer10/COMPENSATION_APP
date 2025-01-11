@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.compensation_app.Navigation.Navigation
+import com.example.compensation_app.Navigation.saveLoginStatus
 import com.example.compensation_app.ui.theme.COMPENSATION_APPTheme
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
@@ -31,11 +32,15 @@ import com.google.firebase.auth.PhoneAuthProvider
 import java.util.concurrent.TimeUnit
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.appcheck.FirebaseAppCheck
+import dagger.hilt.android.AndroidEntryPoint
 
 
 val LocalNavController = compositionLocalOf<NavHostController> {
     error("No NavController provided")
 }
+
+
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
     private val auth = FirebaseAuth.getInstance()
@@ -113,6 +118,7 @@ fun verifyOTP(
     auth.signInWithCredential(credential)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
+                saveLoginStatus(context, true)
                 onVerified()
             } else {
                 Toast.makeText(context, "OTP Verification Failed", Toast.LENGTH_SHORT).show()

@@ -4,6 +4,9 @@ plugins {
     alias(libs.plugins.android.application) // This alias should match your libs.versions.toml
     alias(libs.plugins.jetbrains.kotlin.android) // Ensure the alias exists in your libs.versions.toml
     id("com.google.gms.google-services") // Firebase plugin
+    id("kotlin-android")
+    id("kotlin-kapt")
+    id ("dagger.hilt.android.plugin")
 }
 
 android {
@@ -74,7 +77,10 @@ dependencies {
     // Firebase Analytics
     implementation("com.google.firebase:firebase-analytics")
     implementation ("com.google.firebase:firebase-appcheck-playintegrity")
-
+//hilt
+    implementation("com.google.dagger:hilt-android:2.48")
+    kapt("com.google.dagger:hilt-android-compiler:2.48")
+    implementation ("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     // Example: Firebase Firestore
     // Uncomment if using Firestore
