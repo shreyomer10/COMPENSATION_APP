@@ -1,5 +1,6 @@
 package com.example.compensation_app.screens
 
+import android.annotation.SuppressLint
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -35,12 +36,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.compensation_app.Backend.Guard
 import com.example.compensation_app.Navigation.NavigationScreens
 import com.example.compensation_app.R
 import com.example.compensation_app.sendOTP
 import com.example.compensation_app.verifyOTP
 import com.example.compensation_app.viewmodel.GuardViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.gson.Gson
+import java.net.URLEncoder
+
+@SuppressLint("UnrememberedMutableState")
 @Composable
 fun LoginScreen(navController: NavController) {
     val auth = FirebaseAuth.getInstance()
@@ -51,15 +57,22 @@ fun LoginScreen(navController: NavController) {
     var verificationId by remember { mutableStateOf<String?>(null) }
     var isOTPVerified by remember { mutableStateOf(false) }
     var showToast by remember { mutableStateOf<String?>(null) }
-
+    var gguard = Guard(
+        emp_id = "",
+        name = "",
+        mobile_number = "",
+        division = "",
+        range_ = "",
+        beat = 0)
     // State to handle OTP resend and countdown
     var isOtpSent by remember { mutableStateOf(false) }
     var timeLeft by remember { mutableStateOf(60) } // Time left for resend in seconds
     val context = LocalContext.current
-
+    val gson = Gson()
     var guardVerified by remember {
         mutableStateOf(false)
     }
+    var GuardGson:String=""
 
     LaunchedEffect(showToast) {
         showToast?.let {
@@ -118,7 +131,7 @@ fun LoginScreen(navController: NavController) {
                     mobileNumber = it
                 }
             },
-            label = { Text("Enter your mobile number") },
+            label = { Text("Enter your mobile number (अपना मोबाइल नंबर दर्ज करें)") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
         )
@@ -128,16 +141,14 @@ fun LoginScreen(navController: NavController) {
         OutlinedTextField(
             value = guardId,
             onValueChange = { guardId = it },
-            label = { Text("Enter your guard ID") },
+            label = { Text("Enter your guard ID (अपना गार्ड आईडी दर्ज करें)") },
             modifier = Modifier.fillMaxWidth()
         )
 
-
         Spacer(modifier = Modifier.height(16.dp))
 
-
         if(guardVerified){
-            Text(text = "*Guard is verified*",color = Color.Green)
+            Text(text = "*Guard is verified (गार्ड की पुष्टि हो गई है)*", color = Color.Green)
         }
         Button(
             onClick = {
@@ -147,21 +158,27 @@ fun LoginScreen(navController: NavController) {
                 ) { message, guard ->
                     Log.d("VERIFIATION", "LoginScreen: $message , $guard")
 
-                    if (message == "Verified") {
+                    if (message == "Verified" && guard!=null) {
+                        Log.d("actual", "LoginScreen: $guard")
                         guardVerified = true
-                    } else {
-                        guardVerified=false
-                        showToast = "Please enter correct mobile number and guard ID"
-                    }
+                        gguard=guard
+                        GuardGson = URLEncoder.encode(gson.toJson(gguard), "UTF-8")
+                        Log.d("Guard", "LoginScreen: $gguard")
+                        Log.d("Guard GSON", "LoginScreen: $GuardGson")
 
+                    } else {
+                        guardVerified = false
+                        showToast = "Please enter correct mobile number and guard ID (कृपया सही मोबाइल नंबर और गार्ड आईडी दर्ज करें)"
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
         ) {
-            Text(text = "Verify Guard", color = Color.White)
-
+            Text(text = "Verify Guard (गार्ड की पुष्टि करें)", color = Color.White)
         }
+
+
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
@@ -172,14 +189,14 @@ fun LoginScreen(navController: NavController) {
                     }
                     isOtpSent = true // Mark OTP as sent
                 } else {
-                    showToast = "Please enter mobile number and guard ID"
+                    showToast = "Please enter mobile number and guard ID (कृपया मोबाइल नंबर और गार्ड आईडी दर्ज करें)"
                 }
             },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
             enabled = !isOtpSent // Disable button after OTP is sent
         ) {
-            Text(text = "Send OTP", color = Color.White)
+            Text(text = "Send OTP (ओटीपी भेजें)", color = Color.White)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -187,7 +204,7 @@ fun LoginScreen(navController: NavController) {
         OutlinedTextField(
             value = otp,
             onValueChange = { otp = it },
-            label = { Text("Enter received OTP") },
+            label = { Text("Enter received OTP (प्राप्त ओटीपी दर्ज करें)") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
@@ -199,19 +216,17 @@ fun LoginScreen(navController: NavController) {
                 if (verificationId != null && otp.isNotEmpty()) {
                     verifyOTP(auth, verificationId!!, otp, context) {
                         isOTPVerified = true
-                        showToast = "OTP Verified"
-                        navController.navigate(NavigationScreens.HomeScreen.name) {
-                            popUpTo("login_screen") { inclusive = true }
-                        }
+                        showToast = "OTP Verified (ओटीपी सत्यापित किया गया)"
+                        navController.navigate(NavigationScreens.HomeScreen.name)
                     }
                 } else {
-                    showToast = "Enter OTP to proceed"
+                    showToast = "Enter OTP to proceed (आगे बढ़ने के लिए ओटीपी दर्ज करें)"
                 }
             },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
         ) {
-            Text(text = "Proceed", color = Color.White)
+            Text(text = "Proceed (आगे बढ़ें)", color = Color.White)
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -234,12 +249,13 @@ fun LoginScreen(navController: NavController) {
                 },
                 enabled = !isOtpSent // Disable the button if OTP is already sent
             ) {
-                Text(text = if (isOtpSent) "Resend in $timeLeft sec" else "Resend OTP", color = Color.Blue)
+                Text(text = if (isOtpSent) "Resend in $timeLeft sec (पुनः भेजें $timeLeft सेकंड में)" else "Resend OTP (ओटीपी पुनः भेजें)", color = Color.Blue)
             }
 
             TextButton(onClick = { /* TODO: Need Help */ }) {
-                Text(text = "Need Help?", color = Color.Blue)
+                Text(text = "Need Help? (मदद चाहिए?)", color = Color.Blue)
             }
         }
+
     }
 }

@@ -65,4 +65,61 @@ class GuardRepository @Inject constructor() {
             }
         })
     }
+    fun submitCompensationForm(
+        form: CompensationForm,
+        onResult: (Boolean, String?) -> Unit
+    ) {
+        RetrofitClient.instance.submitCompensationForm(form).enqueue(object : Callback<Void> {
+            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                if (response.isSuccessful) {
+                    onResult(true, null)
+                } else {
+                    onResult(false, response.errorBody()?.string())
+                }
+            }
+
+            override fun onFailure(call: Call<Void>, t: Throwable) {
+                onResult(false, t.message)
+            }
+        })
+    }
+    // GuardRepository.kt
+    fun getGuardByMobileNumber(mobileNumber: String, onResult: (Guard?, String?) -> Unit) {
+        RetrofitClient.instance.getGuardByMobileNumber(mobileNumber).enqueue(object : Callback<Guard> {
+            override fun onResponse(call: Call<Guard>, response: Response<Guard>) {
+                if (response.isSuccessful) {
+                    onResult(response.body(), null)
+                } else {
+                    onResult(null, "Failed to fetch guard: ${response.errorBody()?.string()}")
+                }
+            }
+
+            override fun onFailure(call: Call<Guard>, t: Throwable) {
+                onResult(null, "Error: ${t.message}")
+            }
+        })
+    }
+    fun getCompensationFormsByGuardId(
+        forestGuardId: String,
+        onResult: (List<RetrivalForm>?, String?) -> Unit
+    ) {
+        RetrofitClient.instance.getCompensationFormsByGuardId(forestGuardId)
+            .enqueue(object : Callback<List<RetrivalForm>> {
+                override fun onResponse(
+                    call: Call<List<RetrivalForm>>,
+                    response: Response<List<RetrivalForm>>
+                ) {
+                    if (response.isSuccessful) {
+                        onResult(response.body(), null)
+                    } else {
+                        onResult(null, "Failed to fetch compensation forms: ${response.errorBody()?.string()}")
+                    }
+                }
+
+                override fun onFailure(call: Call<List<RetrivalForm>>, t: Throwable) {
+                    onResult(null, "Error: ${t.message}")
+                }
+            })
+    }
+
 }

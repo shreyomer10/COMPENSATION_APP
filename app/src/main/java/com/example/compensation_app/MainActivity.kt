@@ -1,6 +1,7 @@
 package com.example.compensation_app
 
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -33,6 +34,7 @@ import java.util.concurrent.TimeUnit
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.appcheck.FirebaseAppCheck
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.Locale
 
 
 val LocalNavController = compositionLocalOf<NavHostController> {
@@ -44,6 +46,8 @@ val LocalNavController = compositionLocalOf<NavHostController> {
 class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
     private val auth = FirebaseAuth.getInstance()
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -22,17 +22,28 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.example.compensation_app.Backend.Guard
 import com.example.compensation_app.LocalNavController
 import com.example.compensation_app.screens.HomeScreen
 import com.example.compensation_app.screens.LoginScreen
+import com.example.compensation_app.screens.NewApplication
+import com.example.compensation_app.screens.PrevApplicationScreen
+import com.example.compensation_app.screens.RetrivalFormDetailsScreen
 import com.example.compensation_app.screens.SplashScreen
+import com.example.compensation_app.ui.theme.LanguageSwitchScreen
+import com.google.gson.Gson
 import kotlinx.coroutines.launch
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun Navigation(){
     val navController= LocalNavController.current
+    val gson = Gson()
     NavHost(
         navController = navController,
         startDestination = NavigationScreens.SplashScreen.name,
@@ -51,16 +62,58 @@ fun Navigation(){
 
             }
         }
-        composable(route = NavigationScreens.HomeScreen.name){
+        composable(
+            route = NavigationScreens.HomeScreen.name,
+
+        ) { backStackEntry ->
             AnimatedScreenTransition {
                 HomeScreen(navController)
+            }
+        }
+        composable(route = NavigationScreens.NewApplicationScreen.name){
 
+            AnimatedScreenTransition {
+                NewApplication(navController)
+
+            }
+        }
+        composable(route = NavigationScreens.DraftApplicationScreen.name){
+            AnimatedScreenTransition {
+                //NewApplication(navController)
+
+            }
+        }
+        composable(route = NavigationScreens.LanguageChangeScreen.name){
+            AnimatedScreenTransition {
+                LanguageSwitchScreen()
+
+            }
+        }
+        composable(route = NavigationScreens.PrevApplicationScreen.name){
+            AnimatedScreenTransition {
+                PrevApplicationScreen(navController = navController)
+                //HomeScreen(navController)
+
+            }
+        }
+        composable(
+            route = NavigationScreens.CompleteFormScreen.name + "/{encodedForm}",
+            arguments = listOf(navArgument("encodedForm") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val encodedForm = backStackEntry.arguments?.getString("encodedForm")
+            val decodedForm = encodedForm?.let {
+                URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
+            }
+
+            AnimatedScreenTransition {
+                RetrivalFormDetailsScreen(navController = navController, encodedForm = decodedForm)
             }
         }
 
 }
 
 }
+
 
 @Composable
 fun AnimatedScreenTransition(

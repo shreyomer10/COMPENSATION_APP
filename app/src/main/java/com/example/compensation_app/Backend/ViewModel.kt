@@ -2,12 +2,15 @@ package com.example.compensation_app.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.compensation_app.Backend.CompensationForm
 import com.example.compensation_app.Backend.Guard
 import com.example.compensation_app.Backend.GuardRepository
+import com.example.compensation_app.Backend.RetrivalForm
 import com.example.compensation_app.Backend.VerifyGuardRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,4 +39,27 @@ class GuardViewModel @Inject constructor(
             guardRepository.verifyGuard(request, onResult)
         }
     }
+    fun newApplicationForm(form:CompensationForm,onResult: (Boolean, String?) -> Unit){
+
+
+
+        viewModelScope.launch (Dispatchers.IO){
+            guardRepository.submitCompensationForm(form,onResult)
+        }
+    }
+    fun searchByMobile(mobile:String,onResult: (Guard?, String?) -> Unit){
+        viewModelScope.launch (Dispatchers.IO){
+            guardRepository.getGuardByMobileNumber(mobileNumber = mobile,onResult)
+        }
+    }
+    fun getFormsByID(GuardId: String, onResult: (List<RetrivalForm>?, String?) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            guardRepository.getCompensationFormsByGuardId(GuardId) { forms, message ->
+                // Switching to Main thread to update UI
+                onResult(forms,message)
+            }
+        }
+    }
+
+
 }

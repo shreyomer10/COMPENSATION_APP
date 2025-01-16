@@ -60,59 +60,48 @@ android {
         }
     }
 }
-
 dependencies {
-    //retrofit
-    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation ("com.squareup.okhttp3:okhttp:4.9.3")
+    // Retrofit and OkHttp
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
 
-
-    // Firebase BoM
+    // Firebase BoM - Centralized dependency management for Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
 
-    // Firebase Authentication
+    // Firebase Core Libraries
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation("com.google.firebase:firebase-appcheck-playintegrity")
 
-    // Firebase Analytics
-    implementation("com.google.firebase:firebase-analytics")
-    implementation ("com.google.firebase:firebase-appcheck-playintegrity")
-//hilt
+    // Uncomment Firestore only if you're using it
+    // implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation ("com.google.code.gson:gson:2.10.1" )// Check for the latest version
+    // Dagger Hilt for Dependency Injection
     implementation("com.google.dagger:hilt-android:2.48")
     kapt("com.google.dagger:hilt-android-compiler:2.48")
-    implementation ("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
-    // Example: Firebase Firestore
-    // Uncomment if using Firestore
-    // implementation("com.google.firebase:firebase-firestore")
-
-    // AndroidX libraries
+    // AndroidX Core Libraries
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.activity:activity-compose:1.8.0")
-    implementation("androidx.compose.ui:ui:1.6.0-alpha04")
-    implementation("androidx.compose.material3:material3:1.2.0-alpha05")
-    implementation("androidx.navigation:navigation-compose:2.7.2")
 
-    // UI and Compose libraries using aliases
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
+    // Jetpack Compose Libraries
+    implementation("androidx.compose.ui:ui:1.5.1") // Use stable version
+    implementation("androidx.compose.material3:material3:1.1.0") // Stable version
+    implementation("androidx.navigation:navigation-compose:2.7.3")
+    implementation("androidx.compose.ui:ui-tooling:1.5.1")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.5.1")
 
-    // Ensure that libs.identity.doctypes.jvm exists in libs.versions.toml
-    implementation(libs.identity.doctypes.jvm)
+    // Testing Dependencies
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.5.1")
+    debugImplementation("androidx.compose.ui:ui-tooling:1.5.1")
+    debugImplementation("androidx.compose.ui:ui-test-manifest:1.5.1")
 
-    // Testing dependencies
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
+    // Remove redundant aliases and unused dependencies
+    // If you're using libs.versions.toml, ensure that only relevant aliases are defined.
 }
