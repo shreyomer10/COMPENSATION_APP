@@ -1,21 +1,38 @@
 package com.example.compensation_app.Backend
 
-data class Guard(
+import android.util.Log
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.SaverScope
+@Entity(tableName = "emp")
+data class emp(
+    @PrimaryKey
     val emp_id: String,
-    val name: String,
+    val Circle_CG: String,
+    val Name: String,
+    val roll: String,
     val mobile_number: String,
+    val Circle1: String,
     val division: String,
+    val subdivision: String,
     val range_: String,
     val beat: Int
 )
+
 data class VerifyGuardRequest(
     val emp_id: String,
     val mobile_number: String
 )
-
+data class StatusUpdate(
+    val status: String,
+    val comment: String,
+    val timestamp: String,  // Store timestamp in ISO format (yyyy-MM-dd'T'HH:mm:ss'Z')
+    val updatedBy: String   // Stores who changed the status (e.g., "SDO", "Ranger")
+)
 data class VerifyGuardResponse(
     val message: String,
-    val employee: Guard? // Use the Guard class to represent employee details if applicable
+    val employee: emp? // Use the Guard class to represent employee details if applicable
 )
 
 data class RetrivalForm(
@@ -29,6 +46,12 @@ data class RetrivalForm(
     val animalName: String?,
     val incidentDate: String?,
     val additionalDetails: String?,
+    val Circle_CG: String,
+    val Circle1: String,
+    val division: String,
+    val subdivision: String,
+    val range_: String,
+    val beat: Int,
     val address: String?,
     val cropType: String?,
     val cerealCrop: String?,
@@ -49,19 +72,26 @@ data class RetrivalForm(
     val panNumber: String?,
     val aadhaarNumber: String?,
     val status: String?,
+    var documentURL: String?,
     val verifiedBy: String?,
-    val paymentProcessedBy: String?
+    val paymentProcessedBy: String?,
+    val comments: String?
 )
 
+
+
+@Entity(tableName = "DraftApplication")
 data class FormData(
-    var forestGuardID: String="",
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    var forestGuardID: String = "",
     var name: String = "",
-    var age: String = "",
+    var age: String = "1",
     var fatherOrSpouseName: String = "",
     var mobile: String = "",
     var animalList: String = "",
     var damageDate: String = "",
     var additionalDetails: String = "",
+
     var address: String = "",
     var cropType: String = "",
     var cerealCrop: String = "",
@@ -79,10 +109,86 @@ data class FormData(
     var bankBranch: String = "",
     var bankHolderName: String = "",
     var bankAccountNumber: String = "",
-    var pan:String="",
-    var adhar:String="",
+    var pan: String = "",
+    var adhar: String = "",
+    var documentURL: String = ""
+) {
+    companion object {
+        val Saver: Saver<FormData, Any> = object : Saver<FormData, Any> {
+            override fun restore(value: Any): FormData {
+                val list = value as List<String>
+                return FormData(
+                    id = list[0].toIntOrNull() ?: 0,
+                    forestGuardID = list[1],
+                    name = list[2],
+                    age = list[3],
+                    fatherOrSpouseName = list[4],
+                    mobile = list[5],
+                    animalList = list[6],
+                    damageDate = list[7],
+                    additionalDetails = list[8],
 
-)
+                    address = list[9],
+                    cropType = list[10],
+                    cerealCrop = list[11],
+                    cropDamageArea = list[12],
+                    fullHousesDamaged = list[13],
+                    partialHousesDamaged = list[14],
+                    cattleInjuryNumber = list[15],
+                    cattleInjuryEstimatedAge = list[16],
+                    humanDeathVictimNames = list[17],
+                    humanDeathNumber = list[18],
+                    temporaryInjuryDetails = list[19],
+                    permanentInjuryDetails = list[20],
+                    bankName = list[21],
+                    ifscCode = list[22],
+                    bankBranch = list[23],
+                    bankHolderName = list[24],
+                    bankAccountNumber = list[25],
+                    pan = list[26],
+                    adhar = list[27],
+                    documentURL = list[28]
+                )
+            }
+
+            override fun SaverScope.save(value: FormData): Any {
+                return listOf(
+                    value.id.toString(),
+                    value.forestGuardID,
+                    value.name,
+                    value.age,
+                    value.fatherOrSpouseName,
+                    value.mobile,
+                    value.animalList,
+                    value.damageDate,
+                    value.additionalDetails,
+
+                    value.address,
+                    value.cropType,
+                    value.cerealCrop,
+                    value.cropDamageArea,
+                    value.fullHousesDamaged,
+                    value.partialHousesDamaged,
+                    value.cattleInjuryNumber,
+                    value.cattleInjuryEstimatedAge,
+                    value.humanDeathVictimNames,
+                    value.humanDeathNumber,
+                    value.temporaryInjuryDetails,
+                    value.permanentInjuryDetails,
+                    value.bankName,
+                    value.ifscCode,
+                    value.bankBranch,
+                    value.bankHolderName,
+                    value.bankAccountNumber,
+                    value.pan,
+                    value.adhar,
+                    value.documentURL
+                )
+            }
+        }
+    }
+}
+
 data class CompensationForm(
     val forestGuardID: String,
     val applicantName: String,
@@ -92,6 +198,12 @@ data class CompensationForm(
     val animalName: String,
     val incidentDate: String,
     val additionalDetails: String="",
+    var circle_CG: String,
+    var circle1: String,
+    var division: String,
+    var subdivision: String,
+    var range_: String,
+    var beat: Int,
     val address: String,
     val cropType: String,
     val cerealCrop: String,
@@ -111,13 +223,32 @@ data class CompensationForm(
     val accountNumber: String,
     val panNumber: String,
     val aadhaarNumber: String,
-    val status: String,
-    val verifiedBy: String,
-    val paymentProcessedBy: String
-){
+    //val statusHistory: MutableList<StatusUpdate> = mutableListOf(),
 
-}
+    // The latest status (for quick access)
+    val status: String,
+    val documentURL: String,
+    val verifiedBy: String,
+    val paymentProcessedBy: String,
+    val comments: String,
+)
 fun validate(Form:CompensationForm): Boolean {
+    Log.d("FORM DOC URL", "validate: ${Form.forestGuardID.isNotEmpty()} &&\n" +
+            "            ${Form.applicantName.isNotEmpty()} &&\n" +
+            "${Form.age!=0} &&\n" +
+            "            ${Form.fatherSpouseName.isNotEmpty()} &&\n" +
+            "            ${Form.mobile.isNotEmpty()} &&\n" +
+            "           ${ Form.animalName.isNotEmpty()} &&\n" +
+            "            ${Form.incidentDate.isNotEmpty()} &&\n" +
+            "            ${Form.address.isNotEmpty()} &&\n" +
+            "\n" +
+            "           ${ Form.bankName.isNotEmpty()} &&\n" +
+            "           ${ Form.ifscCode.isNotEmpty()} &&\n" +
+            "            ${Form.branchName.isNotEmpty()} &&\n" +
+            "            ${Form.accountHolderName.isNotEmpty()} &&\n" +
+            "            ${Form.accountNumber.isNotEmpty()} &&\n" +
+            "           ${ Form.panNumber.isNotEmpty()} &&\n" +
+            "            ${Form.aadhaarNumber.isNotEmpty()} ")
     return Form.forestGuardID.isNotEmpty() &&
             Form.applicantName.isNotEmpty() &&
             Form.age!=0 &&
@@ -135,4 +266,17 @@ fun validate(Form:CompensationForm): Boolean {
             Form.panNumber.isNotEmpty() &&
             Form.aadhaarNumber.isNotEmpty()
 
+
 }
+
+data class UpdateFormStatusRequest(
+    val emp_id: String,
+    val action: String,
+    val comments: String? = null
+)
+
+data class UpdateFormStatusResponse(
+    val message: String,
+    val new_status: String,
+    val verified_by: String
+)

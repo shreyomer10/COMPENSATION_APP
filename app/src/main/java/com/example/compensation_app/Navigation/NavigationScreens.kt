@@ -1,6 +1,6 @@
 package com.example.compensation_app.Navigation
 
-import com.example.compensation_app.ui.theme.LanguageSwitchScreen
+
 
 enum class NavigationScreens {
     SplashScreen,
@@ -10,7 +10,13 @@ enum class NavigationScreens {
     DraftApplicationScreen,
     PrevApplicationScreen,
     CompleteFormScreen,
-    LanguageChangeScreen;
+    EditDraftScreen,
+    DeputyHomeScreen,
+    PendingForYouScreen,
+    PendingScreen,
+    AcceptedScreen,
+    RejectedScreen,
+    ProfileScreen;
     companion object{
         fun fromRoute(route :String):NavigationScreens=
             when(route.substringBefore("/")){
@@ -20,9 +26,14 @@ enum class NavigationScreens {
                 NewApplicationScreen.name->NewApplicationScreen
                 DraftApplicationScreen.name->DraftApplicationScreen
                 PrevApplicationScreen.name->PrevApplicationScreen
-                LanguageChangeScreen.name->LanguageChangeScreen
+                ProfileScreen.name->ProfileScreen
                 CompleteFormScreen.name->CompleteFormScreen
-
+                EditDraftScreen.name->EditDraftScreen
+                DeputyHomeScreen.name->DeputyHomeScreen
+                PendingScreen.name->PendingScreen
+                PendingForYouScreen.name->PendingForYouScreen
+                AcceptedScreen.name->AcceptedScreen
+                RejectedScreen.name->RejectedScreen
 
                 else-> throw IllegalArgumentException("Route $route not found ")
 

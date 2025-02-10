@@ -1,5 +1,8 @@
 package com.example.compensation_app.Navigation
 
+import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -21,25 +24,33 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.compensation_app.Backend.Guard
+import com.example.compensation_app.Backend.RetrivalForm
+import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.LocalNavController
-import com.example.compensation_app.screens.HomeScreen
+import com.example.compensation_app.screens.guard.DraftApplication
+import com.example.compensation_app.screens.guard.EditDraftApplication
+import com.example.compensation_app.screens.guard.HomeScreen
 import com.example.compensation_app.screens.LoginScreen
-import com.example.compensation_app.screens.NewApplication
-import com.example.compensation_app.screens.PrevApplicationScreen
-import com.example.compensation_app.screens.RetrivalFormDetailsScreen
+import com.example.compensation_app.screens.guard.NewApplication
+import com.example.compensation_app.screens.guard.PrevApplicationScreen
+import com.example.compensation_app.screens.guard.RetrivalFormDetailsScreen
 import com.example.compensation_app.screens.SplashScreen
-import com.example.compensation_app.ui.theme.LanguageSwitchScreen
+import com.example.compensation_app.screens.deputyRanger.DeputyHomeScreen
+
+import com.example.compensation_app.screens.deputyRanger.FormScreen
+
+import com.example.compensation_app.screens.guard.ProfileScreem
+import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun Navigation(){
     val navController= LocalNavController.current
@@ -70,43 +81,174 @@ fun Navigation(){
                 HomeScreen(navController)
             }
         }
-        composable(route = NavigationScreens.NewApplicationScreen.name){
+        composable(
+            route = NavigationScreens.DeputyHomeScreen.name,
 
+            ) { backStackEntry ->
             AnimatedScreenTransition {
-                NewApplication(navController)
+                DeputyHomeScreen(navController)
+            }
+        }
+        composable(route = NavigationScreens.NewApplicationScreen.name+"/{encodedGuardJson}",
+            arguments = listOf(navArgument("encodedGuardJson") { type = NavType.StringType } )){
+            val encodedGuard = it.arguments?.getString("encodedGuardJson")
+            val guard = encodedGuard?.let {
+                URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
+            }
+            AnimatedScreenTransition {
+                NewApplication(navController,guard=guard)
 
             }
         }
-        composable(route = NavigationScreens.DraftApplicationScreen.name){
+        composable(
+            route = NavigationScreens.EditDraftScreen.name + "/{guard}"+"/{encodedFormJson}",
+            arguments = listOf(
+                navArgument("guard") { type = NavType.StringType },
+                navArgument("encodedFormJson") { type = NavType.StringType }
+            )
+        ) {
+            val guard = it.arguments?.getString("guard")
+            val encodedForm = it.arguments?.getString("encodedFormJson")
+
+            //val guard = encodedGuard?.let { URLDecoder.decode(it, StandardCharsets.UTF_8.toString()) }
+            val form = encodedForm?.let { URLDecoder.decode(it, StandardCharsets.UTF_8.toString()) }
+
             AnimatedScreenTransition {
+                EditDraftApplication(navController, guard = guard, draftForm = form)
+            }
+        }
+
+        composable(route = NavigationScreens.DraftApplicationScreen.name+"/{encodedGuardJson}",
+            arguments = listOf(navArgument("encodedGuardJson") { type = NavType.StringType } )){
+            val encodedGuard = it.arguments?.getString("encodedGuardJson")
+            val guard = encodedGuard?.let {
+                URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
+            }
+            AnimatedScreenTransition {
+                DraftApplication(navController,guard=guard)
                 //NewApplication(navController)
 
             }
         }
-        composable(route = NavigationScreens.LanguageChangeScreen.name){
+        composable(route = NavigationScreens.ProfileScreen.name){
             AnimatedScreenTransition {
-                LanguageSwitchScreen()
+                ProfileScreem(navController)
 
             }
         }
-        composable(route = NavigationScreens.PrevApplicationScreen.name){
+        composable(
+            route = NavigationScreens.PendingScreen.name + "/{encodedEmpJson}/{encodedPending}",
+            arguments = listOf(
+                navArgument("encodedEmpJson") { type = NavType.StringType },
+                navArgument("encodedPending") { type = NavType.StringType }
+            )
+        ) {
+            val gson = Gson()
+
+            val encodedEmp = it.arguments?.getString("encodedEmpJson")
+            val encodedForms = it.arguments?.getString("encodedPending") // Adjust for each screen
+
+            val emp: emp? = encodedEmp?.let { json -> gson.fromJson(URLDecoder.decode(json, StandardCharsets.UTF_8.toString()), emp::class.java) }
+            val forms: List<RetrivalForm> = encodedForms?.let { json -> gson.fromJson(URLDecoder.decode(json, StandardCharsets.UTF_8.toString()), object : TypeToken<List<RetrivalForm>>() {}.type) } ?: emptyList()
+
+
+
+
             AnimatedScreenTransition {
-                PrevApplicationScreen(navController = navController)
+                FormScreen(navController = navController,name="Pending", emp = emp, forms = forms)
+            }
+        }
+
+        composable(
+            route = NavigationScreens.PendingForYouScreen.name + "/{encodedEmpJson}/{encodedPendingForYou}",
+            arguments = listOf(
+                navArgument("encodedEmpJson") { type = NavType.StringType },
+                navArgument("encodedPendingForYou") { type = NavType.StringType }
+            )
+        ) {
+            val gson = Gson()
+
+            val encodedEmp = it.arguments?.getString("encodedEmpJson")
+            val encodedForms = it.arguments?.getString("encodedPendingForYou") // Adjust for each screen
+            Log.d("TAG", "Navigation: $encodedForms")
+
+            val emp: emp? = encodedEmp?.let { json -> gson.fromJson(URLDecoder.decode(json, StandardCharsets.UTF_8.toString()), emp::class.java) }
+            val forms: List<RetrivalForm> = encodedForms?.let { json -> gson.fromJson(URLDecoder.decode(json, StandardCharsets.UTF_8.toString()), object : TypeToken<List<RetrivalForm>>() {}.type) } ?: emptyList()
+
+
+            AnimatedScreenTransition {
+                FormScreen(navController = navController, emp = emp, name = "PendingForYou", forms = forms)
+            }
+        }
+
+        composable(
+            route = NavigationScreens.AcceptedScreen.name + "/{encodedEmpJson}/{encodedAccepted}",
+            arguments = listOf(
+                navArgument("encodedEmpJson") { type = NavType.StringType },
+                navArgument("encodedAccepted") { type = NavType.StringType }
+            )
+        ) {
+            val gson = Gson()
+
+            val encodedEmp = it.arguments?.getString("encodedEmpJson")
+            val encodedForms = it.arguments?.getString("encodedAccepted") // Adjust for each screen
+
+            val emp: emp? = encodedEmp?.let { json -> gson.fromJson(URLDecoder.decode(json, StandardCharsets.UTF_8.toString()), emp::class.java) }
+            val forms: List<RetrivalForm> = encodedForms?.let { json -> gson.fromJson(URLDecoder.decode(json, StandardCharsets.UTF_8.toString()), object : TypeToken<List<RetrivalForm>>() {}.type) } ?: emptyList()
+
+
+            AnimatedScreenTransition {
+                FormScreen(navController = navController, emp = emp, name = "Accepted", forms = forms)
+            }
+        }
+
+        composable(
+            route = NavigationScreens.RejectedScreen.name + "/{encodedEmpJson}/{encodedRejected}",
+            arguments = listOf(
+                navArgument("encodedEmpJson") { type = NavType.StringType },
+                navArgument("encodedRejected") { type = NavType.StringType }
+            )
+        ) {
+            val gson = Gson()
+
+            val encodedEmp = it.arguments?.getString("encodedEmpJson")
+            val encodedForms = it.arguments?.getString("encodedRejected") // Adjust for each screen
+
+            val emp: emp? = encodedEmp?.let { json -> gson.fromJson(URLDecoder.decode(json, StandardCharsets.UTF_8.toString()), emp::class.java) }
+            val forms: List<RetrivalForm> = encodedForms?.let { json -> gson.fromJson(URLDecoder.decode(json, StandardCharsets.UTF_8.toString()), object : TypeToken<List<RetrivalForm>>() {}.type) } ?: emptyList()
+
+
+
+            AnimatedScreenTransition {
+                FormScreen(navController = navController, emp = emp, name = "Rejected", forms = forms)
+            }
+        }
+
+        composable(route = NavigationScreens.PrevApplicationScreen.name+"/{encodedGuardJson}",
+            arguments = listOf(navArgument("encodedGuardJson") { type = NavType.StringType } )){
+            val encodedGuard = it.arguments?.getString("encodedGuardJson")
+            val guard = encodedGuard?.let {
+                URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
+            }
+            AnimatedScreenTransition {
+                PrevApplicationScreen(navController = navController, guard = guard)
                 //HomeScreen(navController)
 
             }
         }
         composable(
-            route = NavigationScreens.CompleteFormScreen.name + "/{encodedForm}",
-            arguments = listOf(navArgument("encodedForm") { type = NavType.StringType })
+            route = NavigationScreens.CompleteFormScreen.name + "/{encodedForm}" +"/{text}",
+            arguments = listOf(navArgument("encodedForm") { type = NavType.StringType },
+                navArgument("text") { type = NavType.StringType })
         ) { backStackEntry ->
             val encodedForm = backStackEntry.arguments?.getString("encodedForm")
+            val text=backStackEntry.arguments?.getString("text")
             val decodedForm = encodedForm?.let {
                 URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
             }
 
             AnimatedScreenTransition {
-                RetrivalFormDetailsScreen(navController = navController, encodedForm = decodedForm)
+                RetrivalFormDetailsScreen(navController = navController, encodedForm = decodedForm,text=text)
             }
         }
 

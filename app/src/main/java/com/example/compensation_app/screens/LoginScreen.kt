@@ -36,10 +36,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.compensation_app.Backend.Guard
+import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.Navigation.NavigationScreens
 import com.example.compensation_app.R
 import com.example.compensation_app.sendOTP
+import com.example.compensation_app.sqlite.MainViewModel
 import com.example.compensation_app.verifyOTP
 import com.example.compensation_app.viewmodel.GuardViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -51,19 +52,27 @@ import java.net.URLEncoder
 fun LoginScreen(navController: NavController) {
     val auth = FirebaseAuth.getInstance()
     val viewModel:GuardViewModel= hiltViewModel()
+    val mainViewModel: MainViewModel = hiltViewModel()
     var mobileNumber by remember { mutableStateOf("") }
+    val formattedNumber = mobileNumber.replace("+91", "") ?: ""
     var guardId by remember { mutableStateOf("") }
     var otp by remember { mutableStateOf("") }
     var verificationId by remember { mutableStateOf<String?>(null) }
     var isOTPVerified by remember { mutableStateOf(false) }
     var showToast by remember { mutableStateOf<String?>(null) }
-    var gguard = Guard(
-        emp_id = "",
-        name = "",
-        mobile_number = "",
-        division = "",
-        range_ = "",
-        beat = 0)
+
+    var emp by remember {
+        mutableStateOf<emp>(emp(emp_id = "",
+            mobile_number = "",
+            Name = "",
+            Circle_CG = "",
+            Circle1 = "",
+            roll = "guard",
+            subdivision = "",
+            division = "", range_ = "", beat = 0))
+    }
+
+    Log.d("Final", "NewApplication:${emp.emp_id} ")
     // State to handle OTP resend and countdown
     var isOtpSent by remember { mutableStateOf(false) }
     var timeLeft by remember { mutableStateOf(60) } // Time left for resend in seconds
@@ -118,7 +127,7 @@ fun LoginScreen(navController: NavController) {
         )
 
         Text(
-            text = "Forest Guard Login",
+            text = "Official Login",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 16.dp)
@@ -141,14 +150,14 @@ fun LoginScreen(navController: NavController) {
         OutlinedTextField(
             value = guardId,
             onValueChange = { guardId = it },
-            label = { Text("Enter your guard ID (अपना गार्ड आईडी दर्ज करें)") },
+            label = { Text("Enter your Officer ID (अपना गार्ड आईडी दर्ज करें)") },
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         if(guardVerified){
-            Text(text = "*Guard is verified (गार्ड की पुष्टि हो गई है)*", color = Color.Green)
+            Text(text = "*Officer is verified (गार्ड की पुष्टि हो गई है)*", color = Color.Green)
         }
         Button(
             onClick = {
@@ -161,9 +170,9 @@ fun LoginScreen(navController: NavController) {
                     if (message == "Verified" && guard!=null) {
                         Log.d("actual", "LoginScreen: $guard")
                         guardVerified = true
-                        gguard=guard
-                        GuardGson = URLEncoder.encode(gson.toJson(gguard), "UTF-8")
-                        Log.d("Guard", "LoginScreen: $gguard")
+                        emp=guard
+                        GuardGson = URLEncoder.encode(gson.toJson(emp), "UTF-8")
+                        Log.d("Guard", "LoginScreen: $emp")
                         Log.d("Guard GSON", "LoginScreen: $GuardGson")
 
                     } else {
@@ -175,7 +184,7 @@ fun LoginScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
         ) {
-            Text(text = "Verify Guard (गार्ड की पुष्टि करें)", color = Color.White)
+            Text(text = "Verify Officer (गार्ड की पुष्टि करें)", color = Color.White)
         }
 
 
@@ -217,7 +226,16 @@ fun LoginScreen(navController: NavController) {
                     verifyOTP(auth, verificationId!!, otp, context) {
                         isOTPVerified = true
                         showToast = "OTP Verified (ओटीपी सत्यापित किया गया)"
-                        navController.navigate(NavigationScreens.HomeScreen.name)
+                        Log.d("Guard Id", "LoginScreen: $emp")
+                        mainViewModel.GuardDetails(emp = emp)
+                        if(emp.roll=="guard"){
+                            navController.navigate(NavigationScreens.HomeScreen.name)
+
+                        }
+                        else if(emp.roll=="deptRanger"){
+                            navController.navigate(NavigationScreens.DeputyHomeScreen.name)
+                        }
+                        //mainViewModel.GuardDetails(guard = gguard)
                     }
                 } else {
                     showToast = "Enter OTP to proceed (आगे बढ़ने के लिए ओटीपी दर्ज करें)"

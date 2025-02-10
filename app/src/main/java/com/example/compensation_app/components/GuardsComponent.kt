@@ -1,8 +1,10 @@
 package com.example.compensation_app.components
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -157,28 +159,33 @@ fun SignOut(navController: NavController){
 fun SectionTitle(title: String) {
     Text(
         text = title,
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(vertical = 8.dp)
+        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+        modifier = Modifier
+            .padding(vertical = 12.dp)
+            .fillMaxWidth(),
+        textAlign = TextAlign.Start
     )
 }
 
+
 @Composable
 fun InputField(label: String, value: String, onValueChange: (String) -> Unit, keyboardType: KeyboardType) {
+    val textStyle = remember { TextStyle(color = Color.Black) }
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = keyboardType),
-        textStyle = TextStyle(color = Color.Black),
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+        textStyle = textStyle,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
     )
 }
 
-
-
-
 @Composable
-fun DatePickerField(label: String, selectedDate: String, onDateChange: (String) -> Unit) {
+fun DatePickerField(label: String,selectedDate: String, onDateChange: (String) -> Unit) {
     val context = LocalContext.current
     val calendar = remember { java.util.Calendar.getInstance() }
     val year = calendar.get(java.util.Calendar.YEAR)
@@ -194,31 +201,33 @@ fun DatePickerField(label: String, selectedDate: String, onDateChange: (String) 
             year,
             month,
             day
-        )
+        ).apply {
+            datePicker.maxDate = calendar.timeInMillis // Disable future dates
+        }
     }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(8.dp)
+            .clickable { datePickerDialog.show() }, // ✅ Click anywhere to open calendar
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        OutlinedTextField(
-            value = selectedDate,
-            onValueChange = {},
-            label = { Text(label) },
-            trailingIcon = {
-                Icon(
-                    imageVector = Icons.Filled.DateRange,
-                    contentDescription = "Date Picker",
-                    modifier = Modifier.clickable { datePickerDialog.show() }
-                )
-            },
-            modifier = Modifier.weight(1f),
-            readOnly = true // Prevent manual editing
+        Icon(
+            imageVector = Icons.Filled.DateRange,
+            contentDescription = "Select Date",
+            modifier = Modifier.size(32.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = if (selectedDate.isNotEmpty()) selectedDate else "Select Date",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
         )
     }
 }
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DamageDetailsDropdown(
@@ -265,4 +274,22 @@ fun DamageDetailsDropdown(
             }
         }
     }
+}
+@Composable
+fun SaveDraftDialog(onSave: () -> Unit, onDiscard: () -> Unit, onCancel: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text("Save Changes?") },
+        text = { Text("Do you want to save the draft before exiting?") },
+        confirmButton = {
+            TextButton(onClick = onSave) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDiscard) {
+                Text("Discard")
+            }
+        }
+    )
 }

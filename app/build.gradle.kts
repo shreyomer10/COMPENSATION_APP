@@ -61,6 +61,24 @@ android {
     }
 }
 dependencies {
+    implementation ("com.itextpdf:itextpdf:5.5.13.2")
+    implementation ("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
+    implementation( "androidx.room:room-runtime:2.6.1")
+    implementation(libs.androidx.room.common)
+    kapt ("androidx.room:room-compiler:2.6.1") // Use kapt for Kotlin
+    implementation ("androidx.room:room-ktx:2.6.1") // Kotlin Extensions
+
+//location
+  //  implementation ("com.google.android.gms:play-services-maps:18.1.0")
+    implementation ("com.google.android.gms:play-services-location:21.0.1")
+    implementation( "com.google.accompanist:accompanist-permissions:0.33.2-alpha")
+
+    implementation("com.google.maps.android:maps-compose:2.14.0")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+    //implementation("com.google.android.gms:play-services-location:21.0.1")
+
+
+
     // Retrofit and OkHttp
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
@@ -73,12 +91,15 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-appcheck-playintegrity")
+    implementation ("com.google.firebase:firebase-storage-ktx")
+    implementation ("com.google.firebase:firebase-firestore-ktx")
 
     // Uncomment Firestore only if you're using it
     // implementation("com.google.firebase:firebase-firestore-ktx")
     implementation ("com.google.code.gson:gson:2.10.1" )// Check for the latest version
     // Dagger Hilt for Dependency Injection
     implementation("com.google.dagger:hilt-android:2.48")
+    implementation(libs.androidx.appcompat)
     kapt("com.google.dagger:hilt-android-compiler:2.48")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
@@ -104,4 +125,8 @@ dependencies {
 
     // Remove redundant aliases and unused dependencies
     // If you're using libs.versions.toml, ensure that only relevant aliases are defined.
+
+
+
+
 }

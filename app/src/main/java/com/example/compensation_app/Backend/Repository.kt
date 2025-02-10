@@ -8,9 +8,9 @@ import javax.inject.Inject
 class GuardRepository @Inject constructor() {
 
     // Fetch guards from the server
-    fun getGuards(onResult: (List<Guard>?, String?) -> Unit) {
-        RetrofitClient.instance.getGuards().enqueue(object : Callback<List<Guard>> {
-            override fun onResponse(call: Call<List<Guard>>, response: Response<List<Guard>>) {
+    fun getGuards(onResult: (List<emp>?, String?) -> Unit) {
+        RetrofitClient.instance.getGuards().enqueue(object : Callback<List<emp>> {
+            override fun onResponse(call: Call<List<emp>>, response: Response<List<emp>>) {
                 if (response.isSuccessful) {
                     onResult(response.body(), null)
                 } else {
@@ -18,15 +18,15 @@ class GuardRepository @Inject constructor() {
                 }
             }
 
-            override fun onFailure(call: Call<List<Guard>>, t: Throwable) {
+            override fun onFailure(call: Call<List<emp>>, t: Throwable) {
                 onResult(null, "Error: ${t.message}")
             }
         })
     }
 
     // Add a guard to the server
-    fun addGuard(guard: Guard, onResult: (Boolean, String?) -> Unit) {
-        RetrofitClient.instance.addGuard(guard).enqueue(object : Callback<Void> {
+    fun addGuard(emp: emp, onResult: (Boolean, String?) -> Unit) {
+        RetrofitClient.instance.addGuard(emp).enqueue(object : Callback<Void> {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                 if (response.isSuccessful) {
                     onResult(true, null)
@@ -42,7 +42,7 @@ class GuardRepository @Inject constructor() {
     }
 
     // Verify a guard by employee ID and mobile number
-    fun verifyGuard(request: VerifyGuardRequest, onResult: (String, Guard?) -> Unit) {
+    fun verifyGuard(request: VerifyGuardRequest, onResult: (String, emp?) -> Unit) {
         RetrofitClient.instance.verifyGuard(request).enqueue(object : Callback<VerifyGuardResponse> {
             override fun onResponse(
                 call: Call<VerifyGuardResponse>,
@@ -84,9 +84,9 @@ class GuardRepository @Inject constructor() {
         })
     }
     // GuardRepository.kt
-    fun getGuardByMobileNumber(mobileNumber: String, onResult: (Guard?, String?) -> Unit) {
-        RetrofitClient.instance.getGuardByMobileNumber(mobileNumber).enqueue(object : Callback<Guard> {
-            override fun onResponse(call: Call<Guard>, response: Response<Guard>) {
+    fun getGuardByMobileNumber(mobileNumber: String, onResult: (emp?, String?) -> Unit) {
+        RetrofitClient.instance.getGuardByMobileNumber(mobileNumber).enqueue(object : Callback<emp> {
+            override fun onResponse(call: Call<emp>, response: Response<emp>) {
                 if (response.isSuccessful) {
                     onResult(response.body(), null)
                 } else {
@@ -94,7 +94,7 @@ class GuardRepository @Inject constructor() {
                 }
             }
 
-            override fun onFailure(call: Call<Guard>, t: Throwable) {
+            override fun onFailure(call: Call<emp>, t: Throwable) {
                 onResult(null, "Error: ${t.message}")
             }
         })
@@ -120,6 +120,58 @@ class GuardRepository @Inject constructor() {
                     onResult(null, "Error: ${t.message}")
                 }
             })
+    }
+    fun getCompensationFormsByDeptRangerId(
+        deptRangerId: String,
+        onResult: (List<RetrivalForm>?, String?) -> Unit
+    ) {
+        RetrofitClient.instance.getCompensationFormsByDeptRangerID(deptRangerId)
+            .enqueue(object : Callback<List<RetrivalForm>> {
+                override fun onResponse(
+                    call: Call<List<RetrivalForm>>,
+                    response: Response<List<RetrivalForm>>
+                ) {
+                    if (response.isSuccessful) {
+                        onResult(response.body(), null)
+                    } else {
+                        onResult(null, "Failed to fetch compensation forms: ${response.errorBody()?.string()}")
+                    }
+                }
+
+                override fun onFailure(call: Call<List<RetrivalForm>>, t: Throwable) {
+                    onResult(null, "Error: ${t.message}")
+                }
+            })
+    }
+
+
+    fun updateFormStatus(
+        formId: String,
+        empId: String,
+        action: String,
+        comments: String?,
+        callback: (Result<UpdateFormStatusResponse>) -> Unit
+    ) {
+        val request = UpdateFormStatusRequest(empId, action, comments)
+
+        RetrofitClient.instance.updateFormStatus(formId, request).enqueue(object : Callback<UpdateFormStatusResponse> {
+            override fun onResponse(
+                call: Call<UpdateFormStatusResponse>,
+                response: Response<UpdateFormStatusResponse>
+            ) {
+                if (response.isSuccessful) {
+                    response.body()?.let {
+                        callback(Result.success(it))
+                    } ?: callback(Result.failure(Exception("Response body is null")))
+                } else {
+                    callback(Result.failure(Exception("API call failed with code ${response.code()}")))
+                }
+            }
+
+            override fun onFailure(call: Call<UpdateFormStatusResponse>, t: Throwable) {
+                callback(Result.failure(t))
+            }
+        })
     }
 
 }

@@ -3,9 +3,11 @@ package com.example.compensation_app
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -20,10 +22,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.compensation_app.Navigation.Navigation
 import com.example.compensation_app.Navigation.saveLoginStatus
+import com.example.compensation_app.sqlite.MainViewModel
 import com.example.compensation_app.ui.theme.COMPENSATION_APPTheme
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
@@ -46,17 +50,24 @@ val LocalNavController = compositionLocalOf<NavHostController> {
 class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
     private val auth = FirebaseAuth.getInstance()
+    private val viewModel: MainViewModel by viewModels()
 
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+        window.statusBarColor = android.graphics.Color.WHITE
         setContent {
+
             FirebaseAppCheck.getInstance()
                 .installAppCheckProviderFactory(PlayIntegrityAppCheckProviderFactory.getInstance())
             COMPENSATION_APPTheme {
                 navController= rememberNavController()
                 CompositionLocalProvider(LocalNavController provides navController) {
+                    viewModel.GetGuard {
+                        Log.d("TAG", "onCreate: $it")
+                    }
                     Navigation()
                 }
             }

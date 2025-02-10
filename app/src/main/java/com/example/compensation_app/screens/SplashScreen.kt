@@ -35,9 +35,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.Navigation.NavigationScreens
+import com.example.compensation_app.sqlite.MainViewModel
 
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
@@ -67,15 +70,40 @@ fun SplashScreen(navController: NavController) {
     )
     val sharedPreferences: SharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     val isLoggedIn = sharedPreferences.getBoolean("is_logged_in", false)
-
+    val mainViewModel: MainViewModel = hiltViewModel()
+    var emp by remember {
+        mutableStateOf<emp>(
+            emp(emp_id = "",
+            mobile_number = "",
+            Name = "",
+            Circle_CG = "",
+            Circle1 = "",
+            roll = "guard",
+            subdivision = "",
+            division = "", range_ = "", beat = 0)
+        )
+    }
+    mainViewModel.GetGuard {
+        if (it != null) {
+            emp=it
+        }
+    }
     LaunchedEffect(Unit) {
         startAnimation = true
         delay(1000)
         if (isLoggedIn) {
-            // Navigate to the HomeScreen if user is logged in
-            navController.navigate(NavigationScreens.HomeScreen.name) {
-                popUpTo(NavigationScreens.LoginScreen.name) { inclusive = true }
+            if(emp.roll=="guard"){
+                navController.navigate(NavigationScreens.HomeScreen.name) {
+                    popUpTo(NavigationScreens.LoginScreen.name) { inclusive = true }
+                }
             }
+            else if(emp.roll=="deptRanger"){
+                navController.navigate(NavigationScreens.DeputyHomeScreen.name) {
+                    popUpTo(NavigationScreens.LoginScreen.name) { inclusive = true }
+                }
+            }
+            // Navigate to the HomeScreen if user is logged in
+
         } else {
             // Navigate to the LoginScreen if user is not logged in
             navController.navigate(NavigationScreens.LoginScreen.name)
