@@ -228,11 +228,11 @@ fun LoginScreen(navController: NavController) {
                         showToast = "OTP Verified (ओटीपी सत्यापित किया गया)"
                         Log.d("Guard Id", "LoginScreen: $emp")
                         mainViewModel.GuardDetails(emp = emp)
-                        if(emp.roll=="guard"){
+                        if(emp.roll=="forestguard"){
                             navController.navigate(NavigationScreens.HomeScreen.name)
 
                         }
-                        else if(emp.roll=="deptRanger"){
+                        else if(emp.roll=="deputyranger"){
                             navController.navigate(NavigationScreens.DeputyHomeScreen.name)
                         }
                         //mainViewModel.GuardDetails(guard = gguard)

@@ -50,6 +50,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.compensation_app.Navigation.NavigationScreens
 import com.google.firebase.auth.FirebaseAuth
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun TopAppBar(
@@ -183,6 +186,10 @@ fun InputField(label: String, value: String, onValueChange: (String) -> Unit, ke
             .padding(vertical = 8.dp)
     )
 }
+fun getCurrentTimestamp(): String {
+    return SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+}
+// **Save Draft Dialog**
 
 @Composable
 fun DatePickerField(label: String,selectedDate: String, onDateChange: (String) -> Unit) {

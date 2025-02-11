@@ -92,12 +92,12 @@ fun SplashScreen(navController: NavController) {
         startAnimation = true
         delay(1000)
         if (isLoggedIn) {
-            if(emp.roll=="guard"){
+            if(emp.roll=="forestguard"){
                 navController.navigate(NavigationScreens.HomeScreen.name) {
                     popUpTo(NavigationScreens.LoginScreen.name) { inclusive = true }
                 }
             }
-            else if(emp.roll=="deptRanger"){
+            else if(emp.roll=="deputyranger"){
                 navController.navigate(NavigationScreens.DeputyHomeScreen.name) {
                     popUpTo(NavigationScreens.LoginScreen.name) { inclusive = true }
                 }

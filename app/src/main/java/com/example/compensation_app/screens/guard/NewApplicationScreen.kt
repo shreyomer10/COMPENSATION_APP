@@ -31,6 +31,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.compensation_app.Backend.CompensationForm
 import com.example.compensation_app.Backend.FormData
+import com.example.compensation_app.Backend.StatusUpdate
 import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.Backend.validate
 import com.example.compensation_app.FireStorage.FileDetails
@@ -40,12 +41,16 @@ import com.example.compensation_app.components.DatePickerField
 import com.example.compensation_app.components.InputField
 import com.example.compensation_app.components.SaveDraftDialog
 import com.example.compensation_app.components.SectionTitle
+import com.example.compensation_app.components.getCurrentTimestamp
 
 import com.example.compensation_app.sqlite.MainViewModel
 import com.example.compensation_app.viewmodel.GuardViewModel
 import com.google.gson.Gson
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -254,6 +259,13 @@ fun NewApplication(navController: NavController,guard: String?) {
                             onValueChange = { formData = formData.copy(cropDamageArea = it) },
                             keyboardType = KeyboardType.Decimal
                         )
+                        InputField(
+                            label = "Crop Damage Amount",
+                            value = formData.cropDamageAmount.toString(),
+                            onValueChange = { formData = formData.copy(cropDamageAmount = it.toDouble()) },
+                            keyboardType = KeyboardType.Decimal
+                        )
+
                     }
                     SectionTitle("House Damage (घर का नुकसान)")
                     Row(
@@ -280,6 +292,12 @@ fun NewApplication(navController: NavController,guard: String?) {
                             onValueChange = { formData = formData.copy(partialHousesDamaged = it) },
                             keyboardType = KeyboardType.Text
                         )
+                        InputField(
+                            label = "House Damage Amount",
+                            value = formData.houseDamageAmount.toString(),
+                            onValueChange = { formData = formData.copy(houseDamageAmount = it.toDouble()) },
+                            keyboardType = KeyboardType.Decimal
+                        )
                         SectionTitle("Cattle Injury (पशु चोट)")
                         Row(
                             verticalAlignment = Alignment.CenterVertically
@@ -305,6 +323,13 @@ fun NewApplication(navController: NavController,guard: String?) {
                                 onValueChange = { formData = formData.copy(cattleInjuryEstimatedAge = it) },
                                 keyboardType = KeyboardType.Number
                             )
+                            InputField(
+                                label = "Cattle Injury Amount",
+                                value = formData.catleInjuryAmount.toString(),
+                                onValueChange = { formData = formData.copy(catleInjuryAmount = it.toDouble()) },
+                                keyboardType = KeyboardType.Decimal
+                            )
+
                         }
                     }
                     SectionTitle("Human Death (मानव मृत्यु)")
@@ -358,6 +383,12 @@ fun NewApplication(navController: NavController,guard: String?) {
                             value = formData.permanentInjuryDetails,
                             onValueChange = { formData = formData.copy(permanentInjuryDetails = it) },
                             keyboardType = KeyboardType.Text
+                        )
+                        InputField(
+                            label = "Human Injury Amount",
+                            value = formData.humanInjuryAmount.toString(),
+                            onValueChange = { formData = formData.copy(humanInjuryAmount = it.toDouble()) },
+                            keyboardType = KeyboardType.Decimal
                         )
                     }
                     SectionTitle("Bank Details (बैंक विवरण)")
@@ -449,7 +480,6 @@ fun NewApplication(navController: NavController,guard: String?) {
                     ) {
                         Text("Submit Application (आवेदन सबमिट करें)")
                     }
-
                     if (showConfirmationDialog) {
                         AlertDialog(
                             onDismissRequest = { showConfirmationDialog = false },
@@ -499,11 +529,29 @@ fun NewApplication(navController: NavController,guard: String?) {
                                             accountNumber = formData.bankAccountNumber,
                                             panNumber = formData.pan,
                                             aadhaarNumber = formData.adhar,
+                                            totalCompensationAmount =( formData.cropDamageAmount +
+                                                    formData.catleInjuryAmount +
+                                                    formData.humanInjuryAmount +
+                                                    formData.houseDamageAmount +
+                                                    formData.humanDeathAmount),
+                                            statusHistory = mutableListOf(
+                                                StatusUpdate(
+                                                    timestamp = getCurrentTimestamp(),  // Function to get the current timestamp
+                                                    status = "1",
+                                                    comment = "Submitted Successfully",
+                                                    updatedBy = gguard.emp_id
+                                                )
+                                            ),
                                             documentURL = formData.documentURL,
                                             status = "1",
                                             verifiedBy = "Pending",
                                             paymentProcessedBy = "Pending",
-                                            comments = ""
+                                            comments = "",
+                                            cropDamageAmount = formData.cropDamageAmount,
+                                            catleInjuryAmount = formData.catleInjuryAmount,
+                                            humanInjuryAmount = formData.humanInjuryAmount,
+                                            houseDamageAmount = formData.houseDamageAmount,
+                                            humanDeathAmount =  formData.humanDeathAmount
                                         )
                                         // Add form validation and submission logic here
                                         if (validate(form)) {
@@ -551,447 +599,8 @@ fun NewApplication(navController: NavController,guard: String?) {
                             }
                         )
                     }
-
-
                 }
-//
-//                LazyColumn(
-//                    state = listState, // ✅ Use only one LazyListState
-//                    verticalArrangement = Arrangement.spacedBy(12.dp),
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .padding(16.dp)
-//                        .nestedScroll(nestedScrollConnection), // ✅ Correct usage
-//                    content = {
-//                        item (key=1){
-//                            SectionTitle("Applicant Details (आवेदक विवरण)")
-//                            InputField(
-//                                label = "Name (नाम)",
-//                                value = formData.name,
-//                                onValueChange = { formData = formData.copy(name = it) },
-//                                keyboardType = KeyboardType.Text
-//                            )
-//                            InputField(
-//                                label = "Age (उम्र)",
-//                                value = formData.age,
-//                                onValueChange = { formData = formData.copy(age = it) },
-//                                keyboardType = KeyboardType.Number
-//                            )
-//                            InputField(
-//                                label = "Father/Spouse Name (पिता/पति का नाम)",
-//                                value = formData.fatherOrSpouseName,
-//                                onValueChange = { formData = formData.copy(fatherOrSpouseName = it) },
-//                                keyboardType = KeyboardType.Text
-//                            )
-//                            InputField(
-//                                label = "Mobile (मोबाइल)",
-//                                value = formData.mobile,
-//                                onValueChange = { if (it.length <= 10) formData = formData.copy(mobile = it) },
-//                                keyboardType = KeyboardType.Number
-//                            )
-//                        }
-//                        // Damage Details Section
-//                        item(key=2) {
-//                            SectionTitle("Damage Details (नुकसान विवरण)")
-//
-//                            // Dropdown for Animal List
-//                            DamageDetailsDropdown(
-//                                label = "Animal List (जानवरों की सूची)",
-//                                options = listOf(
-//                                    "Elephant (हाथी)",
-//                                    "Leopard (तेंदुआ)",
-//                                    "Tiger (बाघ)",
-//                                    "Sloth Bear (कंबल भालू)",
-//                                    "Hyena (हाइना)",
-//                                    "Wild Boar (जंगली सूअर)",
-//                                    "Jungle Cat (जंगल बिल्ली)"
-//                                ),
-//                                selectedOption = formData.animalList,
-//                                onOptionSelected = { formData = formData.copy(animalList = it) }
-//                            )
-//
-//                            // Date Picker
-//                            DatePickerField(
-//                                label = "Damage Date (नुकसान की तारीख)",
-//                                selectedDate = formData.damageDate,
-//                                onDateChange = { formData = formData.copy(damageDate = it) }
-//                            )
-//
-//                            InputField(
-//                                label = "Additional Details (अतिरिक्त विवरण)",
-//                                value = formData.additionalDetails,
-//                                onValueChange = { formData = formData.copy(additionalDetails = it) },
-//                                keyboardType = KeyboardType.Text
-//                            )
-//                            InputField(
-//                                label = "Address (पता)",
-//                                value = formData.address,
-//                                onValueChange = { formData = formData.copy(address = it) },
-//                                keyboardType = KeyboardType.Text
-//                            )
-//                        }
-//                        // Crop Damage Section
-//                        item (key=3){
-//                            SectionTitle("Crop Damage (फसल का नुकसान)")
-//                            Row(
-//                                verticalAlignment = Alignment.CenterVertically
-//                            ) {
-//                                Checkbox(
-//                                    checked = cropDamageChecked,
-//                                    onCheckedChange = { cropDamageChecked = it })
-//                                Text(
-//                                    "Crop Damage Details Required (फसल का नुकसान विवरण आवश्यक है)",
-//                                    modifier = Modifier.padding(start = 8.dp)
-//                                )
-//                            }
-//                            if (cropDamageChecked) {
-//                                InputField(
-//                                    label = "Crop Type (फसल का प्रकार)",
-//                                    value = formData.cropType,
-//                                    onValueChange = { formData = formData.copy(cropType = it) },
-//                                    keyboardType = KeyboardType.Text
-//                                )
-//                                InputField(
-//                                    label = "Cereal Crop (अनाज की फसल)",
-//                                    value = formData.cerealCrop,
-//                                    onValueChange = { formData = formData.copy(cerealCrop = it) },
-//                                    keyboardType = KeyboardType.Text
-//                                )
-//                                InputField(
-//                                    label = "Crop Damage Area (फसल नुकसान क्षेत्र)",
-//                                    value = formData.cropDamageArea,
-//                                    onValueChange = { formData = formData.copy(cropDamageArea = it) },
-//                                    keyboardType = KeyboardType.Decimal
-//                                )
-//                            }
-//                        }
-//                        // House Damage Section
-//                        item (4){
-//                            SectionTitle("House Damage (घर का नुकसान)")
-//                            Row(
-//                                verticalAlignment = Alignment.CenterVertically
-//                            ) {
-//                                Checkbox(
-//                                    checked = houseDamageChecked,
-//                                    onCheckedChange = { houseDamageChecked = it })
-//                                Text(
-//                                    "House Damage Details Required (घर का नुकसान विवरण आवश्यक है)",
-//                                    modifier = Modifier.padding(start = 8.dp)
-//                                )
-//                            }
-//                            if (houseDamageChecked) {
-//                                InputField(
-//                                    label = "Full Houses Damaged (पूर्ण घरों का नुकसान)",
-//                                    value = formData.fullHousesDamaged,
-//                                    onValueChange = { formData = formData.copy(fullHousesDamaged = it) },
-//                                    keyboardType = KeyboardType.Text
-//                                )
-//                                InputField(
-//                                    label = "Partial Houses Damaged (आंशिक घरों का नुकसान)",
-//                                    value = formData.partialHousesDamaged,
-//                                    onValueChange = { formData = formData.copy(partialHousesDamaged = it) },
-//                                    keyboardType = KeyboardType.Text
-//                                )
-//                            }
-//                        }
-//                        // Cattle Injury Section
-//                        item (5){
-//                            SectionTitle("Cattle Injury (पशु चोट)")
-//                            Row(
-//                                verticalAlignment = Alignment.CenterVertically
-//                            ) {
-//                                Checkbox(
-//                                    checked = cattleInjuryChecked,
-//                                    onCheckedChange = { cattleInjuryChecked = it })
-//                                Text(
-//                                    "Cattle Injury Details Required (पशु चोट विवरण आवश्यक है)",
-//                                    modifier = Modifier.padding(start = 8.dp)
-//                                )
-//                            }
-//                            if (cattleInjuryChecked) {
-//                                InputField(
-//                                    label = "Number of Individuals (व्यक्तियों की संख्या)",
-//                                    value = formData.cattleInjuryNumber,
-//                                    onValueChange = { formData = formData.copy(cattleInjuryNumber = it) },
-//                                    keyboardType = KeyboardType.Number
-//                                )
-//                                InputField(
-//                                    label = "Estimated Age (अनुमानित आयु)",
-//                                    value = formData.cattleInjuryEstimatedAge,
-//                                    onValueChange = { formData = formData.copy(cattleInjuryEstimatedAge = it) },
-//                                    keyboardType = KeyboardType.Number
-//                                )
-//                            }
-//                        }
-//                        // Human Death Section
-//                        item (6){
-//                            SectionTitle("Human Death (मानव मृत्यु)")
-//                            Row(
-//                                verticalAlignment = Alignment.CenterVertically
-//                            ) {
-//                                Checkbox(
-//                                    checked = humanDeathChecked,
-//                                    onCheckedChange = { humanDeathChecked = it })
-//                                Text(
-//                                    "Human Death Details Required (मानव मृत्यु विवरण आवश्यक है)",
-//                                    modifier = Modifier.padding(start = 8.dp)
-//                                )
-//                            }
-//                            if (humanDeathChecked) {
-//                                InputField(
-//                                    label = "Victim Names (पीड़ितों के नाम)",
-//                                    value = formData.humanDeathVictimNames,
-//                                    onValueChange = { formData = formData.copy(humanDeathVictimNames = it) },
-//                                    keyboardType = KeyboardType.Text
-//                                )
-//                                InputField(
-//                                    label = "Number of Individuals (व्यक्तियों की संख्या)",
-//                                    value = formData.humanDeathNumber,
-//                                    onValueChange = { formData = formData.copy(humanDeathNumber = it) },
-//                                    keyboardType = KeyboardType.Number
-//                                )
-//                            }
-//                        }
-//                        // Human Injury Section
-//                        item (7){
-//                            SectionTitle("Human Injury (मानव चोट)")
-//                            Row(
-//                                verticalAlignment = Alignment.CenterVertically
-//                            ) {
-//                                Checkbox(
-//                                    checked = humanInjuryChecked,
-//                                    onCheckedChange = { humanInjuryChecked = it })
-//                                Text(
-//                                    "Human Injury Details Required (मानव चोट विवरण आवश्यक है)",
-//                                    modifier = Modifier.padding(start = 8.dp)
-//                                )
-//                            }
-//                            if (humanInjuryChecked) {
-//                                InputField(
-//                                    label = "Temporary Injury Details (अस्थायी चोट विवरण)",
-//                                    value = formData.temporaryInjuryDetails,
-//                                    onValueChange = { formData = formData.copy(temporaryInjuryDetails = it) },
-//                                    keyboardType = KeyboardType.Text
-//                                )
-//                                InputField(
-//                                    label = "Permanent Injury Details (स्थायी चोट विवरण)",
-//                                    value = formData.permanentInjuryDetails,
-//                                    onValueChange = { formData = formData.copy(permanentInjuryDetails = it) },
-//                                    keyboardType = KeyboardType.Text
-//                                )
-//                            }
-//                        }
-//                        // Bank Details Section
-//                        item (8){
-//                            SectionTitle("Bank Details (बैंक विवरण)")
-//                            InputField(
-//                                label = "Name (नाम)",
-//                                value = formData.bankName,
-//                                onValueChange = { formData = formData.copy(bankName = it) },
-//                                keyboardType = KeyboardType.Text
-//                            )
-//                            InputField(
-//                                label = "IFSC Code (IFSC कोड)",
-//                                value = formData.ifscCode,
-//                                onValueChange = { formData = formData.copy(ifscCode = it) },
-//                                keyboardType = KeyboardType.Text
-//                            )
-//                            InputField(
-//                                label = "Branch (शाखा)",
-//                                value = formData.bankBranch,
-//                                onValueChange = { formData = formData.copy(bankBranch = it) },
-//                                keyboardType = KeyboardType.Text
-//                            )
-//                            InputField(
-//                                label = "Account Holder Name (खाता धारक का नाम)",
-//                                value = formData.bankHolderName,
-//                                onValueChange = { formData = formData.copy(bankHolderName = it) },
-//                                keyboardType = KeyboardType.Text
-//                            )
-//                            InputField(
-//                                label = "Account Number (खाता संख्या)",
-//                                value = formData.bankAccountNumber,
-//                                onValueChange = { formData = formData.copy(bankAccountNumber = it) },
-//                                keyboardType = KeyboardType.Number
-//                            )
-//                        }
-//                        item (9){
-//                            SectionTitle("Documents (दस्तावेज)")
-//                            InputField(
-//                                label = "PAN Number (PAN नंबर)",
-//                                value = formData.pan,
-//                                onValueChange = { if (it.length <= 10) formData = formData.copy(pan = it) },
-//                                keyboardType = KeyboardType.Text
-//                            )
-//                            InputField(
-//                                label = "Aadhar Number (आधार नंबर)",
-//                                value = formData.adhar,
-//                                onValueChange = { if (it.length <= 12) formData = formData.copy(adhar = it) },
-//                                keyboardType = KeyboardType.Number
-//                            )
-//                        }
-//                        item (10){
-//                            SectionTitle("Upload Documents (दस्तावेज)")
-//                            Text(
-//                                text = "Verify to upload all documents in a single file (Aadhar, PAN, Passport Photo, Signature, Incident Photos - 3)\nसभी दस्तावेज़ों को एक फ़ाइल में अपलोड करने के लिए सत्यापित करें (आधार, पैन, पासपोर्ट फोटो, हस्ताक्षर, घटना की तस्वीरें - 3)",
-//                                fontSize = 14.sp,
-//                                fontWeight = FontWeight.Bold,
-//                                color = Color.Red,
-//                                modifier = Modifier.padding(bottom = 8.dp)
-//                            )
-//
-//
-//                            // Button to select a file and handle upload
-//                            UploadButton(
-//                                onFileSelected = { uri, error ->
-//                                    isUploading=true
-//                                    pdfUri.value = uri
-//                                    pdfSizeError.value = error
-//                                },
-//                                onUploadComplete = { downloadUrl ->
-//                                    isUploading=false
-//                                    android.util.Log.d("URL", "NewApplication: $downloadUrl")
-//                                    if (downloadUrl != null) {
-//                                        formData.documentURL=downloadUrl
-//                                        // Save the URL to Firestore or SQL database
-//                                        Log.d("URL @", "NewApplication: ${formData.documentURL}")
-//
-//                                    } else {
-//                                        Log.e("Upload", "Failed to upload the file.")
-//                                    }
-//                                }
-//                            )
-//
-//                            // Show file details or error
-//                            FileDetails(pdfUri = pdfUri, pdfSizeError = pdfSizeError)
-//                        }
-//                        // Submit Button
-//                        item (11){
-//                            Spacer(modifier = Modifier.height(20.dp))
-//                            Button(
-//                                onClick = {
-//                                    showConfirmationDialog=true
-//                                },
-//                                enabled = !isUploading,
-//                                modifier = Modifier.fillMaxWidth()
-//                            ) {
-//                                Text("Submit Application (आवेदन सबमिट करें)")
-//                            }
-//
-//                            if (showConfirmationDialog) {
-//                                AlertDialog(
-//                                    onDismissRequest = { showConfirmationDialog = false },
-//                                    title = {
-//                                        Text(text = "Confirm Submission (जमा करने की पुष्टि करें)", fontWeight = FontWeight.Bold)
-//                                    },
-//                                    text = {
-//                                        Text(text = "Are you sure you want to submit the application? (क्या आप सुनिश्चित हैं कि आप आवेदन जमा करना चाहते हैं?)")
-//                                    },
-//                                    confirmButton = {
-//                                        Button(
-//                                            onClick = {
-//                                                showConfirmationDialog = false
-//                                                val form = CompensationForm(
-//                                                    forestGuardID = gguard.emp_id,
-//                                                    applicantName = formData.name,
-//
-//                                                    age = formData.age.toInt(),
-//                                                    fatherSpouseName = formData.fatherOrSpouseName,
-//                                                    mobile = formData.mobile,
-//                                                    animalName = formData.animalList,
-//                                                    incidentDate = formData.damageDate,
-//                                                    additionalDetails = formData.additionalDetails,
-//                                                    circle_CG = gguard.Circle_CG,
-//                                                    circle1 = gguard.Circle1,
-//                                                    division = gguard.division,
-//                                                    subdivision = gguard.subdivision,
-//                                                    range_ = gguard.range_,
-//                                                    beat = gguard.beat,
-//                                                    address = formData.address,
-//                                                    cropType = formData.cropType,
-//                                                    cerealCrop = formData.cerealCrop,
-//                                                    cropDamageArea = formData.cropDamageArea.toDoubleOrNull() ?: 0.0,
-//                                                    fullHouseDamage = formData.fullHousesDamaged,
-//                                                    partialHouseDamage = formData.partialHousesDamaged,
-//                                                    numberOfCattlesDied = formData.cattleInjuryNumber.toIntOrNull() ?: 0,
-//                                                    estimatedCattleAge = formData.cattleInjuryEstimatedAge.toIntOrNull()
-//                                                        ?: 0,
-//                                                    humanDeathVictimName = formData.humanDeathVictimNames,
-//                                                    numberOfDeaths = formData.humanDeathNumber.toIntOrNull() ?: 0,
-//                                                    temporaryInjuryDetails = formData.temporaryInjuryDetails,
-//                                                    permanentInjuryDetails = formData.permanentInjuryDetails,
-//                                                    bankName = formData.bankName,
-//                                                    ifscCode = formData.ifscCode,
-//                                                    branchName = formData.bankBranch,
-//                                                    accountHolderName = formData.bankHolderName,
-//                                                    accountNumber = formData.bankAccountNumber,
-//                                                    panNumber = formData.pan,
-//                                                    aadhaarNumber = formData.adhar,
-//                                                    documentURL = formData.documentURL,
-//                                                    status = "1",
-//                                                    verifiedBy = "Pending",
-//                                                    paymentProcessedBy = "Pending",
-//                                                    comments = ""
-//                                                )
-//                                                // Add form validation and submission logic here
-//                                                if (validate(form)) {
-//                                                    Log.d("validity", "NewApplication: Valid hai")
-//
-//
-//
-//                                                    viewModel.newApplicationForm(form = form) { success, status ->
-//                                                        Log.d("view model ke andar ", "NewApplication:ky bhau ")
-//
-//                                                        if (success) {
-//                                                            showToast = "Form submitted successfully!"
-//                                                            //generateCompensationFormPdfWithLogo(context,form)
-//
-//                                                        } else {
-//                                                            Log.d("status", "NewApplication: $status")
-//                                                            showToast = "Error: $status"
-//                                                        }
-//
-//                                                    }
-//                                                    navController.popBackStack()
-//
-//
-//
-//                                                    //showDownloadConfirmationDialog(context,form)
-//
-//                                                }
-//                                                else{
-//                                                    showToast="Please Check all fields (कृपया सभी फ़ील्ड्स की जांच करें)"
-//                                                }
-//                                                // Add your form submission logic here
-//                                            },
-//                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)) // Green color
-//                                        ) {
-//                                            Text(text = "Yes (हां)", color = Color.White, fontWeight = FontWeight.Bold)
-//                                        }
-//                                    },
-//                                    dismissButton = {
-//                                        Button(
-//                                            onClick = { showConfirmationDialog = false },
-//                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336)) // Red color
-//                                        ) {
-//                                            Text(text = "No (नहीं)", color = Color.White, fontWeight = FontWeight.Bold)
-//                                        }
-//                                    }
-//                                )
-//                            }
-//                        }
-//                    }
-//                )
             }
-
-
-
-
-
         }
-
-
     }
 }
-
-// **Save Draft Dialog**

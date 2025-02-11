@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
@@ -48,6 +50,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.compensation_app.Backend.CompensationForm
 import com.example.compensation_app.Backend.FormData
+import com.example.compensation_app.Backend.StatusUpdate
 import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.Backend.validate
 import com.example.compensation_app.FireStorage.FileDetails
@@ -56,6 +59,7 @@ import com.example.compensation_app.components.DamageDetailsDropdown
 import com.example.compensation_app.components.DatePickerField
 import com.example.compensation_app.components.InputField
 import com.example.compensation_app.components.SectionTitle
+import com.example.compensation_app.components.getCurrentTimestamp
 import com.example.compensation_app.sqlite.MainViewModel
 import com.example.compensation_app.viewmodel.GuardViewModel
 import com.google.gson.Gson
@@ -153,13 +157,13 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
             }
 
 
-            LazyColumn(
-                modifier = Modifier
+            Box(modifier = Modifier.fillMaxSize()) {
+
+                Column ( modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp)
-            ) {
-                // Applicant Details Section
-                item {
+                    .verticalScroll(rememberScrollState())){
+
                     SectionTitle("Applicant Details (आवेदक विवरण)")
                     InputField(
                         label = "Name (नाम)",
@@ -185,10 +189,6 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                         onValueChange = { if (it.length <= 10) formData = formData.copy(mobile = it) },
                         keyboardType = KeyboardType.Number
                     )
-                }
-
-                // Damage Details Section
-                item {
                     SectionTitle("Damage Details (नुकसान विवरण)")
 
                     // Dropdown for Animal List
@@ -226,10 +226,6 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                         onValueChange = { formData = formData.copy(address = it) },
                         keyboardType = KeyboardType.Text
                     )
-                }
-
-                // Crop Damage Section
-                item {
                     SectionTitle("Crop Damage (फसल का नुकसान)")
                     Row(
                         verticalAlignment = Alignment.CenterVertically
@@ -261,11 +257,14 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                             onValueChange = { formData = formData.copy(cropDamageArea = it) },
                             keyboardType = KeyboardType.Decimal
                         )
-                    }
-                }
+                        InputField(
+                            label = "Crop Damage Amount",
+                            value = formData.cropDamageAmount.toString(),
+                            onValueChange = { formData = formData.copy(cropDamageAmount = it.toDouble()) },
+                            keyboardType = KeyboardType.Decimal
+                        )
 
-                // House Damage Section
-                item {
+                    }
                     SectionTitle("House Damage (घर का नुकसान)")
                     Row(
                         verticalAlignment = Alignment.CenterVertically
@@ -291,41 +290,46 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                             onValueChange = { formData = formData.copy(partialHousesDamaged = it) },
                             keyboardType = KeyboardType.Text
                         )
-                    }
-                }
-
-                // Cattle Injury Section
-                item {
-                    SectionTitle("Cattle Injury (पशु चोट)")
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = cattleInjuryChecked,
-                            onCheckedChange = { cattleInjuryChecked = it })
-                        Text(
-                            "Cattle Injury Details Required (पशु चोट विवरण आवश्यक है)",
-                            modifier = Modifier.padding(start = 8.dp)
-                        )
-                    }
-                    if (cattleInjuryChecked) {
                         InputField(
-                            label = "Number of Individuals (व्यक्तियों की संख्या)",
-                            value = formData.cattleInjuryNumber,
-                            onValueChange = { formData = formData.copy(cattleInjuryNumber = it) },
-                            keyboardType = KeyboardType.Number
+                            label = "House Damage Amount",
+                            value = formData.houseDamageAmount.toString(),
+                            onValueChange = { formData = formData.copy(houseDamageAmount = it.toDouble()) },
+                            keyboardType = KeyboardType.Decimal
                         )
-                        InputField(
-                            label = "Estimated Age (अनुमानित आयु)",
-                            value = formData.cattleInjuryEstimatedAge,
-                            onValueChange = { formData = formData.copy(cattleInjuryEstimatedAge = it) },
-                            keyboardType = KeyboardType.Number
-                        )
-                    }
-                }
+                        SectionTitle("Cattle Injury (पशु चोट)")
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = cattleInjuryChecked,
+                                onCheckedChange = { cattleInjuryChecked = it })
+                            Text(
+                                "Cattle Injury Details Required (पशु चोट विवरण आवश्यक है)",
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+                        if (cattleInjuryChecked) {
+                            InputField(
+                                label = "Number of Individuals (व्यक्तियों की संख्या)",
+                                value = formData.cattleInjuryNumber,
+                                onValueChange = { formData = formData.copy(cattleInjuryNumber = it) },
+                                keyboardType = KeyboardType.Number
+                            )
+                            InputField(
+                                label = "Estimated Age (अनुमानित आयु)",
+                                value = formData.cattleInjuryEstimatedAge,
+                                onValueChange = { formData = formData.copy(cattleInjuryEstimatedAge = it) },
+                                keyboardType = KeyboardType.Number
+                            )
+                            InputField(
+                                label = "Cattle Injury Amount",
+                                value = formData.catleInjuryAmount.toString(),
+                                onValueChange = { formData = formData.copy(catleInjuryAmount = it.toDouble()) },
+                                keyboardType = KeyboardType.Decimal
+                            )
 
-                // Human Death Section
-                item {
+                        }
+                    }
                     SectionTitle("Human Death (मानव मृत्यु)")
                     Row(
                         verticalAlignment = Alignment.CenterVertically
@@ -351,11 +355,8 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                             onValueChange = { formData = formData.copy(humanDeathNumber = it) },
                             keyboardType = KeyboardType.Number
                         )
-                    }
-                }
 
-                // Human Injury Section
-                item {
+                    }
                     SectionTitle("Human Injury (मानव चोट)")
                     Row(
                         verticalAlignment = Alignment.CenterVertically
@@ -381,11 +382,13 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                             onValueChange = { formData = formData.copy(permanentInjuryDetails = it) },
                             keyboardType = KeyboardType.Text
                         )
+                        InputField(
+                            label = "Human Injury Amount",
+                            value = formData.humanInjuryAmount.toString(),
+                            onValueChange = { formData = formData.copy(humanInjuryAmount = it.toDouble()) },
+                            keyboardType = KeyboardType.Decimal
+                        )
                     }
-                }
-
-                // Bank Details Section
-                item {
                     SectionTitle("Bank Details (बैंक विवरण)")
                     InputField(
                         label = "Name (नाम)",
@@ -417,9 +420,6 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                         onValueChange = { formData = formData.copy(bankAccountNumber = it) },
                         keyboardType = KeyboardType.Number
                     )
-                }
-
-                item {
                     SectionTitle("Documents (दस्तावेज)")
                     InputField(
                         label = "PAN Number (PAN नंबर)",
@@ -433,9 +433,6 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                         onValueChange = { if (it.length <= 12) formData = formData.copy(adhar = it) },
                         keyboardType = KeyboardType.Number
                     )
-                }
-
-                item {
                     SectionTitle("Upload Documents (दस्तावेज)")
                     Text(
                         text = "Verify to upload all documents in a single file (Aadhar, PAN, Passport Photo, Signature, Incident Photos - 3)\nसभी दस्तावेज़ों को एक फ़ाइल में अपलोड करने के लिए सत्यापित करें (आधार, पैन, पासपोर्ट फोटो, हस्ताक्षर, घटना की तस्वीरें - 3)",
@@ -444,6 +441,7 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                         color = Color.Red,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
+
 
                     // Button to select a file and handle upload
                     UploadButton(
@@ -454,7 +452,7 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                         },
                         onUploadComplete = { downloadUrl ->
                             isUploading=false
-                            Log.d("URL", "NewApplication: $downloadUrl")
+                            android.util.Log.d("URL", "NewApplication: $downloadUrl")
                             if (downloadUrl != null) {
                                 formData.documentURL=downloadUrl
                                 // Save the URL to Firestore or SQL database
@@ -464,16 +462,12 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                                 Log.e("Upload", "Failed to upload the file.")
                             }
                         }
+
                     )
+
 
                     // Show file details or error
                     FileDetails(pdfUri = pdfUri, pdfSizeError = pdfSizeError)
-                }
-
-
-
-                // Submit Button
-                item {
                     Spacer(modifier = Modifier.height(20.dp))
                     Button(
                         onClick = {
@@ -484,7 +478,6 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                     ) {
                         Text("Submit Application (आवेदन सबमिट करें)")
                     }
-
                     if (showConfirmationDialog) {
                         AlertDialog(
                             onDismissRequest = { showConfirmationDialog = false },
@@ -501,6 +494,7 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                                         val form = CompensationForm(
                                             forestGuardID = gguard.emp_id,
                                             applicantName = formData.name,
+
                                             age = formData.age.toInt(),
                                             fatherSpouseName = formData.fatherOrSpouseName,
                                             mobile = formData.mobile,
@@ -533,11 +527,29 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                                             accountNumber = formData.bankAccountNumber,
                                             panNumber = formData.pan,
                                             aadhaarNumber = formData.adhar,
+                                            totalCompensationAmount =( formData.cropDamageAmount +
+                                                    formData.catleInjuryAmount +
+                                                    formData.humanInjuryAmount +
+                                                    formData.houseDamageAmount +
+                                                    formData.humanDeathAmount),
+                                            statusHistory = mutableListOf(
+                                                StatusUpdate(
+                                                    timestamp = getCurrentTimestamp(),  // Function to get the current timestamp
+                                                    status = "1",
+                                                    comment = "Submitted Successfully",
+                                                    updatedBy = gguard.emp_id
+                                                )
+                                            ),
                                             documentURL = formData.documentURL,
                                             status = "1",
                                             verifiedBy = "Pending",
                                             paymentProcessedBy = "Pending",
-                                            comments = ""
+                                            comments = "",
+                                            cropDamageAmount = formData.cropDamageAmount,
+                                            catleInjuryAmount = formData.catleInjuryAmount,
+                                            humanInjuryAmount = formData.humanInjuryAmount,
+                                            houseDamageAmount = formData.houseDamageAmount,
+                                            humanDeathAmount =  formData.humanDeathAmount
                                         )
                                         // Add form validation and submission logic here
                                         if (validate(form)) {
@@ -550,12 +562,20 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
 
                                                 if (success) {
                                                     showToast = "Form submitted successfully!"
+                                                    //generateCompensationFormPdfWithLogo(context,form)
+
                                                 } else {
                                                     Log.d("status", "NewApplication: $status")
                                                     showToast = "Error: $status"
                                                 }
 
                                             }
+                                            navController.popBackStack()
+
+
+
+                                            //showDownloadConfirmationDialog(context,form)
+
                                         }
                                         else{
                                             showToast="Please Check all fields (कृपया सभी फ़ील्ड्स की जांच करें)"
@@ -578,7 +598,6 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                         )
                     }
                 }
-
             }
         }
         if (DraftSaver) {
