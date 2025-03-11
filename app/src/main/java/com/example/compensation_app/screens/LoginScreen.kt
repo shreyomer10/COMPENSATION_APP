@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,8 +15,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -47,6 +55,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.Gson
 import java.net.URLEncoder
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun LoginScreen(navController: NavController) {
@@ -81,6 +90,10 @@ fun LoginScreen(navController: NavController) {
     var guardVerified by remember {
         mutableStateOf(false)
     }
+
+    var selectedRole by remember { mutableStateOf("forestguard") }
+    var expanded by remember { mutableStateOf(false) }
+    val roles = listOf("forestguard", "deputyranger")
     var GuardGson:String=""
 
     LaunchedEffect(showToast) {
@@ -133,6 +146,42 @@ fun LoginScreen(navController: NavController) {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it }
+        ) {
+            OutlinedTextField(
+                value = selectedRole,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Select Role (अपनी भूमिका चुनें)") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor()
+                    .clickable { expanded = true },
+                trailingIcon = {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "Dropdown")
+                    }
+                }
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                roles.forEach { role ->
+                    DropdownMenuItem(
+                        text = { Text(role) },
+                        onClick = {
+                            selectedRole = role
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+
         OutlinedTextField(
             value = mobileNumber,
             onValueChange = {
@@ -163,7 +212,8 @@ fun LoginScreen(navController: NavController) {
             onClick = {
                 viewModel.verifyGuard(
                     empId = guardId,
-                    mobileNumber = mobileNumber
+                    mobileNumber = mobileNumber,
+                    roll =selectedRole
                 ) { message, guard ->
                     Log.d("VERIFIATION", "LoginScreen: $message , $guard")
 
@@ -270,8 +320,9 @@ fun LoginScreen(navController: NavController) {
                 Text(text = if (isOtpSent) "Resend in $timeLeft sec (पुनः भेजें $timeLeft सेकंड में)" else "Resend OTP (ओटीपी पुनः भेजें)", color = Color.Blue)
             }
 
-            TextButton(onClick = { /* TODO: Need Help */ }) {
-                Text(text = "Need Help? (मदद चाहिए?)", color = Color.Blue)
+            TextButton(onClick = { navController.navigate(NavigationScreens.AppHome.name)
+            }) {
+                Text(text = "Dashboard", color = Color.Blue)
             }
         }
 

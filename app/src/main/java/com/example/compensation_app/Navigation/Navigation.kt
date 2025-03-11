@@ -29,6 +29,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.compensation_app.Backend.RetrivalForm
+import com.example.compensation_app.Backend.UserComplaintForm
 import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.LocalNavController
 import com.example.compensation_app.screens.guard.DraftApplication
@@ -44,6 +45,14 @@ import com.example.compensation_app.screens.deputyRanger.DeputyHomeScreen
 import com.example.compensation_app.screens.deputyRanger.FormScreen
 
 import com.example.compensation_app.screens.guard.ProfileScreem
+import com.example.compensation_app.screens.guard.complaints.ComplaintApplicationScreen
+import com.example.compensation_app.screens.guard.complaints.CompleteComplaintFormScreen
+import com.example.compensation_app.screens.user.CompensationScreen
+import com.example.compensation_app.screens.user.CompensationUserLoginScreen
+import com.example.compensation_app.screens.user.ComplaintForm
+import com.example.compensation_app.screens.user.DisplaySuccessScreen
+import com.example.compensation_app.screens.user.SearchComplaint
+import com.example.compensation_app.screens.user.SignUpScreen
 import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
@@ -70,6 +79,51 @@ fun Navigation(){
         composable(route = NavigationScreens.LoginScreen.name){
             AnimatedScreenTransition {
                 LoginScreen(navController)
+
+            }
+        }
+        composable(route = NavigationScreens.AppHome.name){
+            AnimatedScreenTransition {
+                CompensationScreen(navController)
+
+            }
+        }
+        composable(
+            route = "${NavigationScreens.DisplaySuccessScreen.name}/{formDataJson}/{complaintId}",
+            arguments = listOf(
+                navArgument("formDataJson") { type = NavType.StringType },
+                navArgument("complaintId") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val jsonData = backStackEntry.arguments?.getString("formDataJson") ?: ""
+            val complaintId = backStackEntry.arguments?.getInt("complaintId") ?: 0
+
+            // Decode JSON to Object
+            val formData: UserComplaintForm = Gson().fromJson(jsonData, UserComplaintForm::class.java)
+
+            DisplaySuccessScreen(formData, complaintId)
+        }
+        composable(route = NavigationScreens.ComplaintScreen.name){
+            AnimatedScreenTransition {
+                ComplaintForm(navController)
+
+            }
+        }
+        composable(route = NavigationScreens.SearchComplaintForm.name){
+            AnimatedScreenTransition {
+                SearchComplaint(navController)
+
+            }
+        }
+        composable(route = NavigationScreens.UserLoginScreen.name){
+            AnimatedScreenTransition {
+                CompensationUserLoginScreen(navController)
+
+            }
+        }
+        composable(route = NavigationScreens.UserSignUpScreen.name){
+            AnimatedScreenTransition {
+                SignUpScreen(navController)
 
             }
         }
@@ -100,6 +154,28 @@ fun Navigation(){
 
             }
         }
+        composable(route = NavigationScreens.ComplaintApplicationGuard.name+"/{encodedGuardJson}",
+            arguments = listOf(navArgument("encodedGuardJson") { type = NavType.StringType } )){
+            val encodedGuard = it.arguments?.getString("encodedGuardJson")
+            val guard = encodedGuard?.let {
+                URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
+            }
+            AnimatedScreenTransition {
+                ComplaintApplicationScreen(navController,guard=guard)
+
+            }
+        }
+        composable(route = NavigationScreens.PendingForYouScreenGuard.name+"/{encodedGuardJson}",
+            arguments = listOf(navArgument("encodedGuardJson") { type = NavType.StringType } )){
+            val encodedGuard = it.arguments?.getString("encodedGuardJson")
+            val guard = encodedGuard?.let {
+                URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
+            }
+            AnimatedScreenTransition {
+                NewApplication(navController,guard=guard)
+
+            }
+        }
         composable(
             route = NavigationScreens.EditDraftScreen.name + "/{guard}"+"/{encodedFormJson}",
             arguments = listOf(
@@ -115,6 +191,23 @@ fun Navigation(){
 
             AnimatedScreenTransition {
                 EditDraftApplication(navController, guard = guard, draftForm = form)
+            }
+        }
+        composable(
+            route = NavigationScreens.CompleteComplaintGuardScreen.name + "/{encodedForm}"+ "/{guard}",
+            arguments = listOf(navArgument("encodedForm") { type = NavType.StringType },
+                navArgument("guard") { type = NavType.StringType },)
+        ) { backStackEntry ->
+            val encodedForm = backStackEntry.arguments?.getString("encodedForm")
+            val guard = backStackEntry.arguments?.getString("guard")
+            // val text=backStackEntry.arguments?.getString("text")
+            val decodedForm = encodedForm?.let {
+                URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
+            }
+
+            AnimatedScreenTransition {
+                CompleteComplaintFormScreen(navController=navController,encodedFormComplaint=decodedForm,guard=guard)
+                // RetrivalFormDetailsScreen(navController = navController, encodedForm = decodedForm,text=text)
             }
         }
 
@@ -252,9 +345,13 @@ fun Navigation(){
             }
         }
 
+
+
 }
 
 }
+
+
 
 
 @Composable

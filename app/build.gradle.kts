@@ -78,7 +78,7 @@ dependencies {
     //implementation("com.google.android.gms:play-services-location:21.0.1")
 
 
-
+    implementation("io.coil-kt:coil-compose:2.5.0")
     // Retrofit and OkHttp
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
@@ -125,6 +125,9 @@ dependencies {
 
     // Remove redundant aliases and unused dependencies
     // If you're using libs.versions.toml, ensure that only relevant aliases are defined.
+
+    implementation ("com.google.android.gms:play-services-location:21.3.0")
+    implementation ("com.google.android.gms:play-services-maps:19.0.0")
 
 
 

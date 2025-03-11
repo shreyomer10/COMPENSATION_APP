@@ -19,10 +19,48 @@ data class emp(
     val range_: String,
     val beat: Int
 )
+data class UserResponse(
+    val UserId: String,
+    val name: String,
+    val mobile_number: String,
+    val DOB: String,
+    val division: String?,
+    val subdivision: String?,
+    val range_: String?,
+    val beat: String?
+)
+data class User(
+    val UserId: String,
+    val name: String,
+    val mobile_number: String,
+    val Password:String,
+    val DOB: String,
+    val division: String?,
+    val subdivision: String?,
+    val range_: String?,
+    val beat: String?
+)
+
+data class CheckUserRequest(
+    val UserId: String,
+    val Password: String
+)
+
+data class CheckUserResponse(
+    val success: Boolean,  // ✅ Now matches API response
+    val message: String,
+    val user: UserResponse?  // ✅ Ensures data structure consistency
+)
+
+data class AddUserResponse(
+    val success: Boolean,
+    val message: String
+)
 
 data class VerifyGuardRequest(
     val emp_id: String,
-    val mobile_number: String
+    val mobile_number: String,
+    val roll:String
 )
 data class StatusUpdate(
     val status: String,
@@ -39,6 +77,7 @@ data class RetrivalForm(
     val formID: Int?,
     val submissionDateTime: String?,
     val forestGuardID: String?,
+    val complaint_id: String?,
     val applicantName: String?,
     val age: Int?,
     val fatherSpouseName: String?,
@@ -80,17 +119,152 @@ data class RetrivalForm(
     val statusHistory: List<StatusUpdate>?,
     val status: String?,
     var documentURL: String?,
+    var photoUrl:String?,
+    var eSignUrl:String?,
+    var incidentUrl1:String?,
+    var incidentUrl2:String?,
+    var incidentUrl3:String?,
     val verifiedBy: String?,
     val paymentProcessedBy: String?,
     val comments: String?
 )
 
+data class SubmissionComplaintResponse(
+    val message: String,
+    val complaint_id: Int
+)
+data class SearchComplaintRequest(
+    val complaint_id: String?,
+    val mobile: String?
+)
+data class FullComplaintResponse(
+    val found: String?, // "yes" or "no"
+    val complaint: UserComplaintRetrievalForm?, // If found == "yes", this contains data
+    val error: String? // If there's an error, this contains an error message
+)
+data class GuardComplaintResponse(
+    val found: String,  // Always "yes" or "no", so non-nullable
+    val complaints: List<UserComplaintRetrievalForm>? = null
+)
 
+data class UserComplaintRetrievalForm(
+    var complaint_id: String?,
+    var SubmissionDateTime:String?,
+    var name: String?,
+    var age: String ?,
+    var fatherOrSpouseName: String?,
+    var mobile: String?,
+    var animalList: String?,
+    var damageDate: String?,
+    var additionalDetails: String?,
+
+    var address: String?,
+    var division: String?,
+    var subdivision: String?,
+    var range_: String?,
+    var circle1: String?,
+    var beat: String?,
+    var cropType: String?,
+    var cerealCrop: String?,
+
+    var fullHousesDamaged: String ?,
+    var partialHousesDamaged: String?,
+
+    var cattleInjuryNumber: String?,
+    var cattleInjuryEstimatedAge: String ?,
+
+    var humanDeathVictimNames: String ?,
+    var humanDeathNumber: String?,
+
+
+    var temporaryInjuryDetails: String?,
+    var permanentInjuryDetails: String?,
+
+
+
+
+    var photoUrl:String?,
+    var eSignUrl:String?,
+    var incidentUrl1:String?,
+    var incidentUrl2:String?,
+    var incidentUrl3:String?,
+    val status: String?,
+    val statusHistory: MutableList<StatusUpdate>?,
+
+    // The latest status (for quick access)
+
+)
+data class UserComplaintForm(
+
+    var name: String = "",
+    var age: String = "1",
+    var fatherOrSpouseName: String = "",
+    var mobile: String = "",
+    var animalList: String = "",
+    var damageDate: String = "",
+    var additionalDetails: String = "",
+
+    var address: String = "",
+    var division: String="",
+    var subdivision: String="",
+    var range_: String="",
+    var circle1: String="",
+    var beat: String="",
+    var cropType: String = "",
+    var cerealCrop: String = "",
+
+    var fullHousesDamaged: String = "",
+    var partialHousesDamaged: String = "",
+
+    var cattleInjuryNumber: String = "",
+    var cattleInjuryEstimatedAge: String = "",
+
+    var humanDeathVictimNames: String = "",
+    var humanDeathNumber: String = "",
+
+
+    var temporaryInjuryDetails: String = "",
+    var permanentInjuryDetails: String = "",
+
+
+    // The latest status (for quick access)
+
+
+    var photoUrl:String="",
+    var eSignUrl:String="",
+    var incidentUrl1:String="",
+    var incidentUrl2:String="",
+    var incidentUrl3:String="",
+    var status: String="0",
+    var statusHistory: MutableList<StatusUpdate> = mutableListOf()
+
+    )
+
+fun validateComplaint(Form:UserComplaintForm): Boolean {
+
+    return Form.name.isNotEmpty() &&
+            Form.age!="0" &&
+            Form.age.isNotEmpty() &&
+            Form.fatherOrSpouseName.isNotEmpty() &&
+            Form.mobile.isNotEmpty() &&
+            Form.animalList.isNotEmpty() &&
+            Form.damageDate.isNotEmpty() &&
+            Form.address.isNotEmpty() &&
+
+            Form.division.isNotEmpty() &&
+            Form.subdivision.isNotEmpty() &&
+            Form.range_.isNotEmpty() &&
+            Form.circle1.isNotEmpty() &&
+            Form.beat.isNotEmpty()
+
+
+}
 
 @Entity(tableName = "DraftApplication")
 data class FormData(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     var forestGuardID: String = "",
+    var complaint_id: String?=null,
     var name: String = "",
     var age: String = "1",
     var fatherOrSpouseName: String = "",
@@ -126,8 +300,15 @@ data class FormData(
     var bankAccountNumber: String = "",
     var pan: String = "",
     var adhar: String = "",
-    var documentURL: String = ""
-) {
+    var documentURL: String = "",
+    var photoUrl:String="",
+    var eSignUrl:String="",
+    var incidentUrl1:String="",
+    var incidentUrl2:String="",
+    var incidentUrl3:String="",
+
+
+    ) {
     companion object {
         val Saver: Saver<FormData, Any> = object : Saver<FormData, Any> {
             override fun restore(value: Any): FormData {
@@ -206,6 +387,7 @@ data class FormData(
 
 data class CompensationForm(
     val forestGuardID: String,
+    val complaint_id: String?=null,
     val applicantName: String,
     val age: Int=1,
     val fatherSpouseName: String,
@@ -252,10 +434,16 @@ data class CompensationForm(
     // The latest status (for quick access)
     val status: String,
     val documentURL: String,
+    var photoUrl:String,
+    var eSignUrl:String,
+    var incidentUrl1:String,
+    var incidentUrl2:String,
+    var incidentUrl3:String,
     val verifiedBy: String,
     val paymentProcessedBy: String,
     val comments: String,
 )
+
 fun validate(Form:CompensationForm): Boolean {
     Log.d("FORM DOC URL", "validate: ${Form.forestGuardID.isNotEmpty()} &&\n" +
             "            ${Form.applicantName.isNotEmpty()} &&\n" +

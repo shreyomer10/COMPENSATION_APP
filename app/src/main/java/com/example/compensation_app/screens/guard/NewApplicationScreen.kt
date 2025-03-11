@@ -1,10 +1,14 @@
 package com.example.compensation_app.screens.guard
 
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.net.Uri
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,16 +16,20 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -35,17 +43,24 @@ import com.example.compensation_app.Backend.StatusUpdate
 import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.Backend.validate
 import com.example.compensation_app.FireStorage.FileDetails
-import com.example.compensation_app.FireStorage.UploadButton
+import com.example.compensation_app.FireStorage.ImagePickerButton
+import com.example.compensation_app.FireStorage.SelectPdfButton
+import com.example.compensation_app.FireStorage.uploadFormFiles
 import com.example.compensation_app.components.DamageDetailsDropdown
 import com.example.compensation_app.components.DatePickerField
 import com.example.compensation_app.components.InputField
+import com.example.compensation_app.components.RequiredDocumentsTable
 import com.example.compensation_app.components.SaveDraftDialog
 import com.example.compensation_app.components.SectionTitle
 import com.example.compensation_app.components.getCurrentTimestamp
 
 import com.example.compensation_app.sqlite.MainViewModel
 import com.example.compensation_app.viewmodel.GuardViewModel
+import com.example.landareacalculator.ControlButtons
+import com.example.landareacalculator.LandAreaTracker
+import com.example.landareacalculator.MapScreen
 import com.google.gson.Gson
+import java.net.URLDecoder
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.util.Calendar
@@ -53,6 +68,7 @@ import java.util.Date
 import java.util.Locale
 
 
+@SuppressLint("DefaultLocale")
 @RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,9 +103,25 @@ fun NewApplication(navController: NavController,guard: String?) {
         var humanDeathChecked by remember { mutableStateOf(false) }
         var humanInjuryChecked by remember { mutableStateOf(false) }
         var showToast by remember { mutableStateOf<String?>(null) }
-        val pdfUri = remember { mutableStateOf<Uri?>(null) }
-        val pdfSizeError = remember { mutableStateOf<String?>(null) }
+        var pdfUri = remember { mutableStateOf<Uri?>(null) }
+
+        var photoUri by remember { mutableStateOf<Uri?>(null) }
+        var eSignUri by remember { mutableStateOf<Uri?>(null) }
+
+        var incident1 by remember { mutableStateOf<Uri?>(null) }
+        var incident2 by remember { mutableStateOf<Uri?>(null) }
+        var incident3 by remember { mutableStateOf<Uri?>(null) }
+        var incident4 by remember { mutableStateOf<Uri?>(null) }
+
+
+
+        var pdfSizeError = remember { mutableStateOf<String?>(null) }
         val context= LocalContext.current
+        var area by remember {
+            mutableStateOf(0.0)
+        }
+        val landAreaTracker = remember { LandAreaTracker(context) }
+        val points by landAreaTracker.locationList.collectAsState()
 
         LaunchedEffect(showToast) {
             showToast?.let {
@@ -162,9 +194,13 @@ fun NewApplication(navController: NavController,guard: String?) {
             Box(modifier = Modifier.fillMaxSize()) {
 
                 Column ( modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
+                    .fillMaxSize()
+                    .padding(16.dp)
                     .verticalScroll(rememberScrollState())){
+
+
+                    
+
 
                     SectionTitle("Applicant Details (आवेदक विवरण)")
                     InputField(
@@ -252,18 +288,33 @@ fun NewApplication(navController: NavController,guard: String?) {
                             value = formData.cerealCrop,
                             onValueChange = { formData = formData.copy(cerealCrop = it) },
                             keyboardType = KeyboardType.Text
+
                         )
+                        MapScreen(points) // <-- Now using MapScreen to show the map
+                        ControlButtons(landAreaTracker) { calculatedArea ->
+                            Log.d("CalculatedArea", "Area: $calculatedArea square meters")
+                            area=calculatedArea
+                        }
+                        val areaInAcres = String.format("%.3f", area / 4046.86)
+                        formData.cropDamageAmount=(area/4046.86)*9000
+
+                        formData.cropDamageArea= areaInAcres
+                        SectionTitle(title = "Area")
                         InputField(
                             label = "Crop Damage Area (फसल नुकसान क्षेत्र)",
                             value = formData.cropDamageArea,
-                            onValueChange = { formData = formData.copy(cropDamageArea = it) },
-                            keyboardType = KeyboardType.Decimal
+                            onValueChange = {}, // No effect when user types
+                            keyboardType = KeyboardType.Decimal,
+                            enabled = false // Disables user input
                         )
+                        SectionTitle(title = "Amount")
+
                         InputField(
                             label = "Crop Damage Amount",
                             value = formData.cropDamageAmount.toString(),
                             onValueChange = { formData = formData.copy(cropDamageAmount = it.toDouble()) },
-                            keyboardType = KeyboardType.Decimal
+                            keyboardType = KeyboardType.Decimal,
+                            enabled = false
                         )
 
                     }
@@ -436,36 +487,58 @@ fun NewApplication(navController: NavController,guard: String?) {
                         keyboardType = KeyboardType.Number
                     )
                     SectionTitle("Upload Documents (दस्तावेज)")
+
                     Text(
-                        text = "Verify to upload all documents in a single file (Aadhar, PAN, Passport Photo, Signature, Incident Photos - 3)\nसभी दस्तावेज़ों को एक फ़ाइल में अपलोड करने के लिए सत्यापित करें (आधार, पैन, पासपोर्ट फोटो, हस्ताक्षर, घटना की तस्वीरें - 3)",
+                        text = "Verify to upload all documents in a single file (Aadhar, PAN, Passport Photo, Signature, Incident Photos - 3)\n" +
+                                "सभी दस्तावेज़ों को एक फ़ाइल में अपलोड करने के लिए सत्यापित करें (आधार, पैन, पासपोर्ट फोटो, हस्ताक्षर, घटना की तस्वीरें - 3)",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Red,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
+                    RequiredDocumentsTable()
+
+                    SectionTitle("Upload Photos")
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        ImagePickerButton("Select Passport Size Photo") { uri -> photoUri = uri }
+                        photoUri?.let { Text("Selected: $it", fontSize = 14.sp) }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        ImagePickerButton("Select E-Sign") { uri -> eSignUri = uri }
+                        eSignUri?.let { Text("Selected: $it", fontSize = 14.sp) }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        ImagePickerButton("Select Incident Photo 1") { uri -> incident1 = uri }
+                        incident1?.let { Text("Selected: $it", fontSize = 14.sp) }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        ImagePickerButton("Select Incident Photo 2") { uri -> incident2 = uri }
+                        incident2?.let { Text("Selected: $it", fontSize = 14.sp) }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        ImagePickerButton("Select Incident Photo 3") { uri -> incident3 = uri }
+                        incident3?.let { Text("Selected: $it", fontSize = 14.sp) }
 
 
-                    // Button to select a file and handle upload
-                    UploadButton(
-                        onFileSelected = { uri, error ->
-                            isUploading=true
-                            pdfUri.value = uri
+                        SelectPdfButton { uri, error ->
+                            pdfUri.value= uri
                             pdfSizeError.value = error
-                        },
-                        onUploadComplete = { downloadUrl ->
-                            isUploading=false
-                            android.util.Log.d("URL", "NewApplication: $downloadUrl")
-                            if (downloadUrl != null) {
-                                formData.documentURL=downloadUrl
-                                // Save the URL to Firestore or SQL database
-                                Log.d("URL @", "NewApplication: ${formData.documentURL}")
-
-                            } else {
-                                Log.e("Upload", "Failed to upload the file.")
-                            }
                         }
+//                        Text("Selected: $pdfUri", fontSize = 14.sp, color = Color.Green)
 
-                    )
+
+                        //Text("Error: $pdfSizeError", fontSize = 14.sp, color = Color.Red)
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
 
 
                     // Show file details or error
@@ -493,102 +566,145 @@ fun NewApplication(navController: NavController,guard: String?) {
                                 Button(
                                     onClick = {
                                         showConfirmationDialog = false
-                                        val form = CompensationForm(
-                                            forestGuardID = gguard.emp_id,
-                                            applicantName = formData.name,
+                                        isUploading = true  // ✅ Show loading while uploading
 
-                                            age = formData.age.toInt(),
-                                            fatherSpouseName = formData.fatherOrSpouseName,
-                                            mobile = formData.mobile,
-                                            animalName = formData.animalList,
-                                            incidentDate = formData.damageDate,
-                                            additionalDetails = formData.additionalDetails,
-                                            circle_CG = gguard.Circle_CG,
-                                            circle1 = gguard.Circle1,
-                                            division = gguard.division,
-                                            subdivision = gguard.subdivision,
-                                            range_ = gguard.range_,
-                                            beat = gguard.beat,
-                                            address = formData.address,
-                                            cropType = formData.cropType,
-                                            cerealCrop = formData.cerealCrop,
-                                            cropDamageArea = formData.cropDamageArea.toDoubleOrNull() ?: 0.0,
-                                            fullHouseDamage = formData.fullHousesDamaged,
-                                            partialHouseDamage = formData.partialHousesDamaged,
-                                            numberOfCattlesDied = formData.cattleInjuryNumber.toIntOrNull() ?: 0,
-                                            estimatedCattleAge = formData.cattleInjuryEstimatedAge.toIntOrNull()
-                                                ?: 0,
-                                            humanDeathVictimName = formData.humanDeathVictimNames,
-                                            numberOfDeaths = formData.humanDeathNumber.toIntOrNull() ?: 0,
-                                            temporaryInjuryDetails = formData.temporaryInjuryDetails,
-                                            permanentInjuryDetails = formData.permanentInjuryDetails,
-                                            bankName = formData.bankName,
-                                            ifscCode = formData.ifscCode,
-                                            branchName = formData.bankBranch,
-                                            accountHolderName = formData.bankHolderName,
-                                            accountNumber = formData.bankAccountNumber,
-                                            panNumber = formData.pan,
-                                            aadhaarNumber = formData.adhar,
-                                            totalCompensationAmount =( formData.cropDamageAmount +
-                                                    formData.catleInjuryAmount +
-                                                    formData.humanInjuryAmount +
-                                                    formData.houseDamageAmount +
-                                                    formData.humanDeathAmount),
-                                            statusHistory = mutableListOf(
-                                                StatusUpdate(
-                                                    timestamp = getCurrentTimestamp(),  // Function to get the current timestamp
-                                                    status = "1",
-                                                    comment = "Submitted Successfully",
-                                                    updatedBy = gguard.emp_id
+                                        // ✅ Upload photos to Firebase
+                                        uploadFormFiles(
+                                            forestGuardId = gguard.emp_id,
+                                            applicantMobile = formData.mobile,
+                                            photoUri = photoUri,
+                                            eSignUri = eSignUri,
+                                            pdfUri = pdfUri.value,
+                                            incident1 = incident1,
+                                            incident2 = incident2,
+                                            incident3 = incident3
+                                        ) { uploadedUrls ->
+
+                                            // ✅ Store uploaded URLs in formData
+                                            formData.documentURL = uploadedUrls["document.pdf"] ?: ""
+
+                                            formData.photoUrl = uploadedUrls["photo.jpg"] ?: ""
+                                            formData.eSignUrl = uploadedUrls["esign.jpg"] ?: ""
+                                            formData.incidentUrl1 = uploadedUrls["incident1.jpg"] ?: ""
+                                            formData.incidentUrl2 = uploadedUrls["incident2.jpg"] ?: ""
+                                            formData.incidentUrl3 = uploadedUrls["incident3.jpg"] ?: ""
+
+                                            Log.d("photoUrl", "NewApplication: ${formData.photoUrl}")
+                                            Log.d("sign", "NewApplication: ${formData.eSignUrl}")
+
+                                            Log.d("pdf", "NewApplication: ${formData.documentURL}")
+
+
+
+
+
+
+                                            // ✅ Proceed only if required files are uploaded
+                                            if (formData.documentURL.isNotEmpty() && formData.photoUrl.isNotEmpty() && formData.eSignUrl.isNotEmpty()) {
+
+                                                val form = CompensationForm(
+                                                    forestGuardID = gguard.emp_id,
+                                                    complaint_id = null,
+                                                    applicantName = formData.name,
+                                                    age = formData.age.toInt(),
+                                                    fatherSpouseName = formData.fatherOrSpouseName,
+                                                    mobile = formData.mobile,
+                                                    animalName = formData.animalList,
+                                                    incidentDate = formData.damageDate,
+                                                    additionalDetails = formData.additionalDetails,
+                                                    circle_CG = gguard.Circle_CG,
+                                                    circle1 = gguard.Circle1,
+                                                    division = gguard.division,
+                                                    subdivision = gguard.subdivision,
+                                                    range_ = gguard.range_,
+                                                    beat = gguard.beat,
+                                                    address = formData.address,
+                                                    cropType = formData.cropType,
+                                                    cerealCrop = formData.cerealCrop,
+                                                    cropDamageArea = formData.cropDamageArea.toDoubleOrNull() ?: 0.0,
+                                                    fullHouseDamage = formData.fullHousesDamaged,
+                                                    partialHouseDamage = formData.partialHousesDamaged,
+                                                    numberOfCattlesDied = formData.cattleInjuryNumber.toIntOrNull() ?: 0,
+                                                    estimatedCattleAge = formData.cattleInjuryEstimatedAge.toIntOrNull() ?: 0,
+                                                    humanDeathVictimName = formData.humanDeathVictimNames,
+                                                    numberOfDeaths = formData.humanDeathNumber.toIntOrNull() ?: 0,
+                                                    temporaryInjuryDetails = formData.temporaryInjuryDetails,
+                                                    permanentInjuryDetails = formData.permanentInjuryDetails,
+                                                    bankName = formData.bankName,
+                                                    ifscCode = formData.ifscCode,
+                                                    branchName = formData.bankBranch,
+                                                    accountHolderName = formData.bankHolderName,
+                                                    accountNumber = formData.bankAccountNumber,
+                                                    panNumber = formData.pan,
+                                                    aadhaarNumber = formData.adhar,
+                                                    totalCompensationAmount = (
+                                                            formData.cropDamageAmount +
+                                                                    formData.catleInjuryAmount +
+                                                                    formData.humanInjuryAmount +
+                                                                    formData.houseDamageAmount +
+                                                                    formData.humanDeathAmount
+                                                            ),
+                                                    statusHistory = mutableListOf(
+                                                        StatusUpdate(
+                                                            timestamp = getCurrentTimestamp(),
+                                                            status = "2",
+                                                            comment = "Submitted Successfully",
+                                                            updatedBy = gguard.emp_id
+                                                        )
+                                                    ),
+                                                    documentURL = formData.documentURL,
+                                                    photoUrl = formData.photoUrl, // ✅ Add uploaded URLs
+                                                    eSignUrl = formData.eSignUrl,
+                                                    incidentUrl1 = formData.incidentUrl1,
+                                                    incidentUrl2 = formData.incidentUrl2,
+                                                    incidentUrl3 = formData.incidentUrl3,
+                                                    status = "2",
+                                                    verifiedBy = "Pending",
+                                                    paymentProcessedBy = "Pending",
+                                                    comments = "",
+                                                    cropDamageAmount = formData.cropDamageAmount,
+                                                    catleInjuryAmount = formData.catleInjuryAmount,
+                                                    humanInjuryAmount = formData.humanInjuryAmount,
+                                                    houseDamageAmount = formData.houseDamageAmount,
+                                                    humanDeathAmount = formData.humanDeathAmount
                                                 )
-                                            ),
-                                            documentURL = formData.documentURL,
-                                            status = "1",
-                                            verifiedBy = "Pending",
-                                            paymentProcessedBy = "Pending",
-                                            comments = "",
-                                            cropDamageAmount = formData.cropDamageAmount,
-                                            catleInjuryAmount = formData.catleInjuryAmount,
-                                            humanInjuryAmount = formData.humanInjuryAmount,
-                                            houseDamageAmount = formData.houseDamageAmount,
-                                            humanDeathAmount =  formData.humanDeathAmount
-                                        )
-                                        // Add form validation and submission logic here
-                                        if (validate(form)) {
-                                            Log.d("validity", "NewApplication: Valid hai")
+
+                                                if (validate(form)) {
+                                                    Log.d("validity", "NewApplication: Valid hai")
 
 
+                                                    viewModel.newApplicationForm(form = form) { success, status ->
+                                                        isUploading = false  // ✅ Hide loading when done
 
-                                            viewModel.newApplicationForm(form = form) { success, status ->
-                                                Log.d("view model ke andar ", "NewApplication:ky bhau ")
-
-                                                if (success) {
-                                                    showToast = "Form submitted successfully!"
-                                                    //generateCompensationFormPdfWithLogo(context,form)
+                                                        if (success) {
+                                                            showToast = "Form submitted successfully!"
+                                                            navController.popBackStack()
+                                                        } else {
+                                                            showToast = "Error: $status"
+                                                            Log.d("error", "NewApplication: $status")
+                                                        }
+                                                    }
 
                                                 } else {
-                                                    Log.d("status", "NewApplication: $status")
-                                                    showToast = "Error: $status"
+                                                    showToast = "Please Check all fields (कृपया सभी फ़ील्ड्स की जांच करें)"
+                                                    isUploading = false
                                                 }
-
+                                            } else {
+                                                showToast = "Error: Required files not uploaded!"
+                                                isUploading = false
                                             }
-                                            navController.popBackStack()
-
-
-
-                                            //showDownloadConfirmationDialog(context,form)
-
                                         }
-                                        else{
-                                            showToast="Please Check all fields (कृपया सभी फ़ील्ड्स की जांच करें)"
-                                        }
-                                        // Add your form submission logic here
                                     },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)) // Green color
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                                 ) {
-                                    Text(text = "Yes (हां)", color = Color.White, fontWeight = FontWeight.Bold)
+                                    if (isUploading) {
+                                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
+                                    } else {
+                                        Text(text = "Yes (हां)", color = Color.White, fontWeight = FontWeight.Bold)
+                                    }
                                 }
-                            },
+                            }
+,
                             dismissButton = {
                                 Button(
                                     onClick = { showConfirmationDialog = false },

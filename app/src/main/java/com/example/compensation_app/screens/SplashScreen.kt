@@ -94,19 +94,19 @@ fun SplashScreen(navController: NavController) {
         if (isLoggedIn) {
             if(emp.roll=="forestguard"){
                 navController.navigate(NavigationScreens.HomeScreen.name) {
-                    popUpTo(NavigationScreens.LoginScreen.name) { inclusive = true }
+                    popUpTo(NavigationScreens.AppHome.name) { inclusive = true }
                 }
             }
             else if(emp.roll=="deputyranger"){
                 navController.navigate(NavigationScreens.DeputyHomeScreen.name) {
-                    popUpTo(NavigationScreens.LoginScreen.name) { inclusive = true }
+                    popUpTo(NavigationScreens.AppHome.name) { inclusive = true }
                 }
             }
             // Navigate to the HomeScreen if user is logged in
 
         } else {
             // Navigate to the LoginScreen if user is not logged in
-            navController.navigate(NavigationScreens.LoginScreen.name)
+            navController.navigate(NavigationScreens.AppHome.name)
         }
     }
 

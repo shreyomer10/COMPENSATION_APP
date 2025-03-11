@@ -2,10 +2,12 @@ package com.example.compensation_app.components
 
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -17,12 +19,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -172,7 +180,7 @@ fun SectionTitle(title: String) {
 
 
 @Composable
-fun InputField(label: String, value: String, onValueChange: (String) -> Unit, keyboardType: KeyboardType) {
+fun InputField(label: String, value: String, onValueChange: (String) -> Unit, keyboardType: KeyboardType,enabled:Boolean=true) {
     val textStyle = remember { TextStyle(color = Color.Black) }
 
     OutlinedTextField(
@@ -181,15 +189,93 @@ fun InputField(label: String, value: String, onValueChange: (String) -> Unit, ke
         label = { Text(label) },
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = keyboardType),
         textStyle = textStyle,
+        enabled = enabled,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
     )
 }
+fun getStatusLabel(status: String): String {
+    return when (status.toIntOrNull()) {
+        1 -> "Forest Guard Level (वन रक्षक स्तर)"
+        2 -> "Deputy Ranger Level (उप-रेंजर स्तर)"
+        3 -> "Ranger Level (रेंजर स्तर)"
+        4 -> "Subdivision Level (उपमंडल स्तर)"
+        5 -> "Division Level (मंडल स्तर)"
+        6 -> "Payment Processed (भुगतान संसाधित)"
+        -1 -> "Rejected (अस्वीकृत)"
+        else -> "Unknown Status (अज्ञात स्थिति)"
+    }
+}
 fun getCurrentTimestamp(): String {
     return SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
 }
 // **Save Draft Dialog**
+@Composable
+fun RequiredDocumentsTable() {
+    Column(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+        Text(
+            text = "Required Documents (आवश्यक दस्तावेज़)",
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+            color = Color.Black,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        // Table Header
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.Gray)
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Category",
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = "Required Documents",
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.weight(2f)
+            )
+        }
+
+        // Table Content
+        val documentList = listOf(
+            "General" to "Aadhar, PAN, Passport Photo, Signature, Incident Photos - 3",
+            "Human Injury" to "Injury Photo, Medical Certificate",
+            "Death" to "Death Certificate, Sarpanch Report",
+            "House Damage" to "4 Photos, R.I Report, ROR/Sale Deed Copy",
+            "Cattle Kill" to "Photo, VAS Certificate"
+        )
+
+        documentList.forEach { (category, documents) ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, Color.Black)
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = category,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 14.sp,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = documents,
+                    fontSize = 14.sp,
+                    modifier = Modifier.weight(2f)
+                )
+            }
+        }
+    }
+}
 
 @Composable
 fun DatePickerField(label: String,selectedDate: String, onDateChange: (String) -> Unit) {
@@ -299,4 +385,38 @@ fun SaveDraftDialog(onSave: () -> Unit, onDiscard: () -> Unit, onCancel: () -> U
             }
         }
     )
+}
+@Composable
+fun CompleteFormSectionCard(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    tint = Color(0xFF3F51B5),
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                )
+            }
+            content()
+        }
+    }
 }

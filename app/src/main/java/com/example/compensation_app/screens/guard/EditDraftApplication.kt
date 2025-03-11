@@ -54,10 +54,13 @@ import com.example.compensation_app.Backend.StatusUpdate
 import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.Backend.validate
 import com.example.compensation_app.FireStorage.FileDetails
-import com.example.compensation_app.FireStorage.UploadButton
+import com.example.compensation_app.FireStorage.ImagePickerButton
+import com.example.compensation_app.FireStorage.SelectPdfButton
+import com.example.compensation_app.FireStorage.uploadFormFiles
 import com.example.compensation_app.components.DamageDetailsDropdown
 import com.example.compensation_app.components.DatePickerField
 import com.example.compensation_app.components.InputField
+import com.example.compensation_app.components.RequiredDocumentsTable
 import com.example.compensation_app.components.SectionTitle
 import com.example.compensation_app.components.getCurrentTimestamp
 import com.example.compensation_app.sqlite.MainViewModel
@@ -74,6 +77,15 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
         gson.fromJson(it, FormData::class.java)
     }
     var pdfUri = remember { mutableStateOf<Uri?>(null) }
+
+    var photoUri by remember { mutableStateOf<Uri?>(null) }
+    var eSignUri by remember { mutableStateOf<Uri?>(null) }
+
+    var incident1 by remember { mutableStateOf<Uri?>(null) }
+    var incident2 by remember { mutableStateOf<Uri?>(null) }
+    var incident3 by remember { mutableStateOf<Uri?>(null) }
+    var incident4 by remember { mutableStateOf<Uri?>(null) }
+
     LaunchedEffect (draftForm){
 
         formData=fform
@@ -435,35 +447,56 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                     )
                     SectionTitle("Upload Documents (दस्तावेज)")
                     Text(
-                        text = "Verify to upload all documents in a single file (Aadhar, PAN, Passport Photo, Signature, Incident Photos - 3)\nसभी दस्तावेज़ों को एक फ़ाइल में अपलोड करने के लिए सत्यापित करें (आधार, पैन, पासपोर्ट फोटो, हस्ताक्षर, घटना की तस्वीरें - 3)",
+                        text = "Verify to upload all documents in a single file (Aadhar, PAN, Passport Photo, Signature, Incident Photos - 3)\n" +
+                                "सभी दस्तावेज़ों को एक फ़ाइल में अपलोड करने के लिए सत्यापित करें (आधार, पैन, पासपोर्ट फोटो, हस्ताक्षर, घटना की तस्वीरें - 3)",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Red,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
+                    RequiredDocumentsTable()
+
+                    SectionTitle("Upload Photos")
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        ImagePickerButton("Select Passport Size Photo") { uri -> photoUri = uri }
+                        photoUri?.let { Text("Selected: $it", fontSize = 14.sp) }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        ImagePickerButton("Select E-Sign") { uri -> eSignUri = uri }
+                        eSignUri?.let { Text("Selected: $it", fontSize = 14.sp) }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        ImagePickerButton("Select Incident Photo 1") { uri -> incident1 = uri }
+                        incident1?.let { Text("Selected: $it", fontSize = 14.sp) }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        ImagePickerButton("Select Incident Photo 2") { uri -> incident2 = uri }
+                        incident2?.let { Text("Selected: $it", fontSize = 14.sp) }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        ImagePickerButton("Select Incident Photo 3") { uri -> incident3 = uri }
+                        incident3?.let { Text("Selected: $it", fontSize = 14.sp) }
 
 
-                    // Button to select a file and handle upload
-                    UploadButton(
-                        onFileSelected = { uri, error ->
-                            isUploading=true
-                            pdfUri.value = uri
+                        SelectPdfButton { uri, error ->
+                            pdfUri.value= uri
                             pdfSizeError.value = error
-                        },
-                        onUploadComplete = { downloadUrl ->
-                            isUploading=false
-                            android.util.Log.d("URL", "NewApplication: $downloadUrl")
-                            if (downloadUrl != null) {
-                                formData.documentURL=downloadUrl
-                                // Save the URL to Firestore or SQL database
-                                Log.d("URL @", "NewApplication: ${formData.documentURL}")
-
-                            } else {
-                                Log.e("Upload", "Failed to upload the file.")
-                            }
                         }
+//                        Text("Selected: $pdfUri", fontSize = 14.sp, color = Color.Green)
 
-                    )
+
+                        //Text("Error: $pdfSizeError", fontSize = 14.sp, color = Color.Red)
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
 
 
                     // Show file details or error
@@ -491,102 +524,138 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                                 Button(
                                     onClick = {
                                         showConfirmationDialog = false
-                                        val form = CompensationForm(
-                                            forestGuardID = gguard.emp_id,
-                                            applicantName = formData.name,
+                                        isUploading = true  // ✅ Show loading while uploading
 
-                                            age = formData.age.toInt(),
-                                            fatherSpouseName = formData.fatherOrSpouseName,
-                                            mobile = formData.mobile,
-                                            animalName = formData.animalList,
-                                            incidentDate = formData.damageDate,
-                                            additionalDetails = formData.additionalDetails,
-                                            circle_CG = gguard.Circle_CG,
-                                            circle1 = gguard.Circle1,
-                                            division = gguard.division,
-                                            subdivision = gguard.subdivision,
-                                            range_ = gguard.range_,
-                                            beat = gguard.beat,
-                                            address = formData.address,
-                                            cropType = formData.cropType,
-                                            cerealCrop = formData.cerealCrop,
-                                            cropDamageArea = formData.cropDamageArea.toDoubleOrNull() ?: 0.0,
-                                            fullHouseDamage = formData.fullHousesDamaged,
-                                            partialHouseDamage = formData.partialHousesDamaged,
-                                            numberOfCattlesDied = formData.cattleInjuryNumber.toIntOrNull() ?: 0,
-                                            estimatedCattleAge = formData.cattleInjuryEstimatedAge.toIntOrNull()
-                                                ?: 0,
-                                            humanDeathVictimName = formData.humanDeathVictimNames,
-                                            numberOfDeaths = formData.humanDeathNumber.toIntOrNull() ?: 0,
-                                            temporaryInjuryDetails = formData.temporaryInjuryDetails,
-                                            permanentInjuryDetails = formData.permanentInjuryDetails,
-                                            bankName = formData.bankName,
-                                            ifscCode = formData.ifscCode,
-                                            branchName = formData.bankBranch,
-                                            accountHolderName = formData.bankHolderName,
-                                            accountNumber = formData.bankAccountNumber,
-                                            panNumber = formData.pan,
-                                            aadhaarNumber = formData.adhar,
-                                            totalCompensationAmount =( formData.cropDamageAmount +
-                                                    formData.catleInjuryAmount +
-                                                    formData.humanInjuryAmount +
-                                                    formData.houseDamageAmount +
-                                                    formData.humanDeathAmount),
-                                            statusHistory = mutableListOf(
-                                                StatusUpdate(
-                                                    timestamp = getCurrentTimestamp(),  // Function to get the current timestamp
-                                                    status = "1",
-                                                    comment = "Submitted Successfully",
-                                                    updatedBy = gguard.emp_id
+                                        // ✅ Upload photos to Firebase
+                                        uploadFormFiles(
+                                            forestGuardId = gguard.emp_id,
+                                            applicantMobile = formData.mobile,
+                                            photoUri = photoUri,
+                                            eSignUri = eSignUri,
+                                            pdfUri = pdfUri.value,
+                                            incident1 = incident1,
+                                            incident2 = incident2,
+                                            incident3 = incident3
+                                        ) { uploadedUrls ->
+
+                                            // ✅ Store uploaded URLs in formData
+                                            formData.documentURL = uploadedUrls["document.pdf"] ?: ""
+
+                                            formData.photoUrl = uploadedUrls["photo.jpg"] ?: ""
+                                            formData.eSignUrl = uploadedUrls["esign.jpg"] ?: ""
+                                            formData.incidentUrl1 = uploadedUrls["incident1.jpg"] ?: ""
+                                            formData.incidentUrl2 = uploadedUrls["incident2.jpg"] ?: ""
+                                            formData.incidentUrl3 = uploadedUrls["incident3.jpg"] ?: ""
+
+                                            Log.d("photoUrl", "NewApplication: ${formData.photoUrl}")
+                                            Log.d("sign", "NewApplication: ${formData.eSignUrl}")
+
+                                            Log.d("pdf", "NewApplication: ${formData.documentURL}")
+
+
+                                            // ✅ Proceed only if required files are uploaded
+                                            if (formData.documentURL.isNotEmpty() && formData.photoUrl.isNotEmpty() && formData.eSignUrl.isNotEmpty()) {
+
+                                                val form = CompensationForm(
+                                                    forestGuardID = gguard.emp_id,
+                                                    complaint_id = formData.complaint_id,
+                                                    applicantName = formData.name,
+                                                    age = formData.age.toInt(),
+                                                    fatherSpouseName = formData.fatherOrSpouseName,
+                                                    mobile = formData.mobile,
+                                                    animalName = formData.animalList,
+                                                    incidentDate = formData.damageDate,
+                                                    additionalDetails = formData.additionalDetails,
+                                                    circle_CG = gguard.Circle_CG,
+                                                    circle1 = gguard.Circle1,
+                                                    division = gguard.division,
+                                                    subdivision = gguard.subdivision,
+                                                    range_ = gguard.range_,
+                                                    beat = gguard.beat,
+                                                    address = formData.address,
+                                                    cropType = formData.cropType,
+                                                    cerealCrop = formData.cerealCrop,
+                                                    cropDamageArea = formData.cropDamageArea.toDoubleOrNull() ?: 0.0,
+                                                    fullHouseDamage = formData.fullHousesDamaged,
+                                                    partialHouseDamage = formData.partialHousesDamaged,
+                                                    numberOfCattlesDied = formData.cattleInjuryNumber.toIntOrNull() ?: 0,
+                                                    estimatedCattleAge = formData.cattleInjuryEstimatedAge.toIntOrNull() ?: 0,
+                                                    humanDeathVictimName = formData.humanDeathVictimNames,
+                                                    numberOfDeaths = formData.humanDeathNumber.toIntOrNull() ?: 0,
+                                                    temporaryInjuryDetails = formData.temporaryInjuryDetails,
+                                                    permanentInjuryDetails = formData.permanentInjuryDetails,
+                                                    bankName = formData.bankName,
+                                                    ifscCode = formData.ifscCode,
+                                                    branchName = formData.bankBranch,
+                                                    accountHolderName = formData.bankHolderName,
+                                                    accountNumber = formData.bankAccountNumber,
+                                                    panNumber = formData.pan,
+                                                    aadhaarNumber = formData.adhar,
+                                                    totalCompensationAmount = (
+                                                            formData.cropDamageAmount +
+                                                                    formData.catleInjuryAmount +
+                                                                    formData.humanInjuryAmount +
+                                                                    formData.houseDamageAmount +
+                                                                    formData.humanDeathAmount
+                                                            ),
+                                                    statusHistory = mutableListOf(
+                                                        StatusUpdate(
+                                                            timestamp = getCurrentTimestamp(),
+                                                            status = "2",
+                                                            comment = "Submitted Successfully",
+                                                            updatedBy = gguard.emp_id
+                                                        )
+                                                    ),
+                                                    documentURL = formData.documentURL,
+                                                    photoUrl = formData.photoUrl, // ✅ Add uploaded URLs
+                                                    eSignUrl = formData.eSignUrl,
+                                                    incidentUrl1 = formData.incidentUrl1,
+                                                    incidentUrl2 = formData.incidentUrl2,
+                                                    incidentUrl3 = formData.incidentUrl3,
+                                                    status = "2",
+                                                    verifiedBy = "Pending",
+                                                    paymentProcessedBy = "Pending",
+                                                    comments = "",
+                                                    cropDamageAmount = formData.cropDamageAmount,
+                                                    catleInjuryAmount = formData.catleInjuryAmount,
+                                                    humanInjuryAmount = formData.humanInjuryAmount,
+                                                    houseDamageAmount = formData.houseDamageAmount,
+                                                    humanDeathAmount = formData.humanDeathAmount
                                                 )
-                                            ),
-                                            documentURL = formData.documentURL,
-                                            status = "1",
-                                            verifiedBy = "Pending",
-                                            paymentProcessedBy = "Pending",
-                                            comments = "",
-                                            cropDamageAmount = formData.cropDamageAmount,
-                                            catleInjuryAmount = formData.catleInjuryAmount,
-                                            humanInjuryAmount = formData.humanInjuryAmount,
-                                            houseDamageAmount = formData.houseDamageAmount,
-                                            humanDeathAmount =  formData.humanDeathAmount
-                                        )
-                                        // Add form validation and submission logic here
-                                        if (validate(form)) {
-                                            Log.d("validity", "NewApplication: Valid hai")
 
+                                                if (validate(form)) {
+                                                    Log.d("validity", "NewApplication: Valid hai")
 
+                                                    viewModel.newApplicationForm(form = form) { success, status ->
+                                                        isUploading = false  // ✅ Hide loading when done
 
-                                            viewModel.newApplicationForm(form = form) { success, status ->
-                                                Log.d("view model ke andar ", "NewApplication:ky bhau ")
-
-                                                if (success) {
-                                                    showToast = "Form submitted successfully!"
-                                                    //generateCompensationFormPdfWithLogo(context,form)
-
+                                                        if (success) {
+                                                            showToast = "Form submitted successfully!"
+                                                        } else {
+                                                            showToast = "Error: $status"
+                                                        }
+                                                    }
+                                                    navController.popBackStack()
                                                 } else {
-                                                    Log.d("status", "NewApplication: $status")
-                                                    showToast = "Error: $status"
+                                                    showToast = "Please Check all fields (कृपया सभी फ़ील्ड्स की जांच करें)"
+                                                    isUploading = false
                                                 }
-
+                                            } else {
+                                                showToast = "Error: Required files not uploaded!"
+                                                isUploading = false
                                             }
-                                            navController.popBackStack()
-
-
-
-                                            //showDownloadConfirmationDialog(context,form)
-
                                         }
-                                        else{
-                                            showToast="Please Check all fields (कृपया सभी फ़ील्ड्स की जांच करें)"
-                                        }
-                                        // Add your form submission logic here
                                     },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)) // Green color
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                                 ) {
-                                    Text(text = "Yes (हां)", color = Color.White, fontWeight = FontWeight.Bold)
+                                    if (isUploading) {
+                                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
+                                    } else {
+                                        Text(text = "Yes (हां)", color = Color.White, fontWeight = FontWeight.Bold)
+                                    }
                                 }
-                            },
+                            }
+                            ,
                             dismissButton = {
                                 Button(
                                     onClick = { showConfirmationDialog = false },

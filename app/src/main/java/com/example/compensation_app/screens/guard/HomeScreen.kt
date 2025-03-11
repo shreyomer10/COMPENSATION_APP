@@ -250,6 +250,28 @@ fun HomeScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
+                    onClick = { navController.navigate(NavigationScreens.PendingForYouScreenGuard.name+"/$encodedGuardJson")/* Navigate to Submit New Application Screen */ },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(Color(0xFF4379FF))
+                ) {
+                    Text(text = "Pending (नई आवेदन प्रस्तुत करें)", color = Color.White)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+
+
+                Button(
+                    onClick = { navController.navigate(NavigationScreens.ComplaintApplicationGuard.name+"/$encodedGuardJson")/* Navigate to Submit New Application Screen */ },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(Color(0xFF4379FF))
+                ) {
+                    Text(text = "Complaint Applications", color = Color.White)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
                     onClick = { navController.navigate(NavigationScreens.DraftApplicationScreen.name+"/$encodedGuardJson")/* Navigate to Draft Applications Screen */ },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(Color(0xFF4379FF))

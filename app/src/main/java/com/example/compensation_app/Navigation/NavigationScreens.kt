@@ -4,12 +4,21 @@ package com.example.compensation_app.Navigation
 
 enum class NavigationScreens {
     SplashScreen,
+    AppHome,
+    ComplaintScreen,
+    DisplaySuccessScreen,
+    SearchComplaintForm,
+    UserLoginScreen,
+    UserSignUpScreen,
     LoginScreen,
     HomeScreen,
     NewApplicationScreen,
+    ComplaintApplicationGuard,
+    PendingForYouScreenGuard,
     DraftApplicationScreen,
     PrevApplicationScreen,
     CompleteFormScreen,
+    CompleteComplaintGuardScreen,
     EditDraftScreen,
     DeputyHomeScreen,
     PendingForYouScreen,
@@ -21,13 +30,22 @@ enum class NavigationScreens {
         fun fromRoute(route :String):NavigationScreens=
             when(route.substringBefore("/")){
                 SplashScreen.name -> SplashScreen
+                AppHome.name->AppHome
+                ComplaintScreen.name->ComplaintScreen
+                DisplaySuccessScreen.name->DisplaySuccessScreen
+                SearchComplaintForm.name->SearchComplaintForm
+                UserLoginScreen.name->UserLoginScreen
+                UserSignUpScreen.name->UserSignUpScreen
                 LoginScreen.name->LoginScreen
                 HomeScreen.name->HomeScreen
                 NewApplicationScreen.name->NewApplicationScreen
+                ComplaintApplicationGuard.name->ComplaintApplicationGuard
+                PendingForYouScreenGuard.name->PendingForYouScreenGuard
                 DraftApplicationScreen.name->DraftApplicationScreen
                 PrevApplicationScreen.name->PrevApplicationScreen
                 ProfileScreen.name->ProfileScreen
                 CompleteFormScreen.name->CompleteFormScreen
+                CompleteComplaintGuardScreen.name->CompleteComplaintGuardScreen
                 EditDraftScreen.name->EditDraftScreen
                 DeputyHomeScreen.name->DeputyHomeScreen
                 PendingScreen.name->PendingScreen

@@ -168,45 +168,46 @@ fun DeputyHomeScreen(navController: NavController) {
                                 color = if (showLogoutDialog) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
                             )
                         )
-                        Spacer(modifier = Modifier.height(8.dp)) // Space between details
+
+                    }
+                    Spacer(modifier = Modifier.height(8.dp)) // Space between details
+                    Text(
+                        text = "Circle: ${emp.Circle_CG}",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = if (showLogoutDialog) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Division :${emp.division} ",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = if (showLogoutDialog) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "SubDivision :${emp.subdivision} ",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = if (showLogoutDialog) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp)) // Space between details
+                    Row {
                         Text(
-                            text = "Circle: ${emp.Circle_CG}",
+                            text = "Area: ",
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = if (showLogoutDialog) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
                             )
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Division :${emp.division} ",
+                            text = "${emp.range_} ${emp.Circle1} ",
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 color = if (showLogoutDialog) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
                             )
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "SubDivision :${emp.subdivision} ",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = if (showLogoutDialog) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                            )
-                        )
-                        Spacer(modifier = Modifier.height(8.dp)) // Space between details
-                        Row {
-                            Text(
-                                text = "Area: ",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (showLogoutDialog) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                                )
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "${emp.range_} ${emp.Circle1} ",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = if (showLogoutDialog) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                                )
-                            )
-                        }
                     }
                     Spacer(modifier = Modifier.height(8.dp)) // Space between details
                     Row {
@@ -217,7 +218,7 @@ fun DeputyHomeScreen(navController: NavController) {
                                 color = if (showLogoutDialog) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
                             )
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "${emp.division} ${emp.range_} ${emp.beat}",
                             style = MaterialTheme.typography.bodyMedium.copy(

@@ -1,5 +1,6 @@
 package com.example.compensation_app.Backend
 
+import android.util.Log
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -40,6 +41,61 @@ class GuardRepository @Inject constructor() {
             }
         })
     }
+    // Add a new user to the server
+    fun addUser(user: User, onResult: (Boolean, String?) -> Unit) {
+        RetrofitClient.instance.addUser(user).enqueue(object : Callback<AddUserResponse> {
+            override fun onResponse(call: Call<AddUserResponse>, response: Response<AddUserResponse>) {
+                Log.d("API_RESPONSE", "Response: ${response.body()}")
+
+                if (response.isSuccessful) {
+                    val responseBody = response.body()
+                    if (responseBody?.success == true) {
+                        onResult(true, responseBody.message)
+                    } else {
+                        Log.e("API_ERROR", "Failed: ${responseBody?.message}")
+                        onResult(false, "Failed to add user: ${responseBody?.message ?: "Unknown error"}")
+                    }
+                } else {
+                    val errorResponse = response.errorBody()?.string()
+                    Log.e("API_ERROR", "Response failed: $errorResponse")
+                    onResult(false, "Failed to add user: $errorResponse")
+                }
+            }
+
+            override fun onFailure(call: Call<AddUserResponse>, t: Throwable) {
+                onResult(false, "Error: ${t.message}")
+            }
+        })
+    }
+
+    // Check user credentials (Login)
+    fun checkUser(request: CheckUserRequest, onResult: (CheckUserResponse?, String?) -> Unit) {
+        RetrofitClient.instance.checkUser(request).enqueue(object : Callback<CheckUserResponse> {
+            override fun onResponse(call: Call<CheckUserResponse>, response: Response<CheckUserResponse>) {
+                val responseBody = response.body()
+                Log.d("API_RESPONSE", "Response: $responseBody")
+
+                if (response.isSuccessful && responseBody != null) {
+                    if (responseBody.success) {
+                        onResult(responseBody, null)  // ✅ Success case
+                    } else {
+                        Log.e("API_ERROR", "Login failed: ${responseBody.message}")
+                        onResult(null, responseBody.message)
+                    }
+                } else {
+                    val errorResponse = response.errorBody()?.string()
+                    Log.e("API_ERROR", "Response failed: $errorResponse")
+                    onResult(null, errorResponse ?: "Server error")
+                }
+            }
+
+            override fun onFailure(call: Call<CheckUserResponse>, t: Throwable) {
+                Log.e("API_FAILURE", "Error: ${t.message}")
+                onResult(null, "Error: ${t.message}")
+            }
+        })
+    }
+
 
     // Verify a guard by employee ID and mobile number
     fun verifyGuard(request: VerifyGuardRequest, onResult: (String, emp?) -> Unit) {
@@ -121,6 +177,36 @@ class GuardRepository @Inject constructor() {
                 }
             })
     }
+    data class guardComplaintRequest(val guardId: String,)
+
+    fun getGuardComplaints(
+        guardId: String,
+        onResult: (List<UserComplaintRetrievalForm>?, String?) -> Unit
+    ) {
+        RetrofitClient.instance.getGuardComplaints(guardComplaintRequest(guardId))
+            .enqueue(object : Callback<GuardComplaintResponse> {
+                override fun onResponse(
+                    call: Call<GuardComplaintResponse>,
+                    response: Response<GuardComplaintResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        val responseBody = response.body()
+                        if (responseBody?.found == "yes" && !responseBody.complaints.isNullOrEmpty()) {
+                            onResult(responseBody.complaints, null)
+                        } else {
+                            onResult(emptyList(), "No complaints found for this guard")
+                        }
+                    } else {
+                        onResult(null, "Failed to fetch complaints: ${response.errorBody()?.string()}")
+                    }
+                }
+
+                override fun onFailure(call: Call<GuardComplaintResponse>, t: Throwable) {
+                    onResult(null, "Error: ${t.message}")
+                }
+            })
+    }
+
     fun getCompensationFormsByDeptRangerId(
         deptRangerId: String,
         onResult: (List<RetrivalForm>?, String?) -> Unit
@@ -170,6 +256,50 @@ class GuardRepository @Inject constructor() {
 
             override fun onFailure(call: Call<UpdateFormStatusResponse>, t: Throwable) {
                 callback(Result.failure(t))
+            }
+        })
+    }
+
+    fun submitComplaint(form: UserComplaintForm, callback: (Boolean, Int?, String?) -> Unit) {
+        val call = RetrofitClient.instance.submitComplaintForm(form)
+
+        call.enqueue(object : Callback<SubmissionComplaintResponse> {
+            override fun onResponse(call: Call<SubmissionComplaintResponse>, response: Response<SubmissionComplaintResponse>) {
+                if (response.isSuccessful) {
+                    val responseBody = response.body()
+                    callback(true, responseBody?.complaint_id, null)
+                } else {
+                    val errorMsg = response.errorBody()?.string() ?: "Unknown error"
+                    callback(false, null, errorMsg)
+                }
+            }
+
+            override fun onFailure(call: Call<SubmissionComplaintResponse>, t: Throwable) {
+                callback(false, null, t.localizedMessage ?: "Network error")
+            }
+        })
+    }
+    fun getComplaint(complaintId: String,mobileNumber: String, callback: (Boolean, UserComplaintRetrievalForm?, String?) -> Unit) {
+        val req=SearchComplaintRequest(complaint_id =complaintId, mobile = mobileNumber)
+        val call = RetrofitClient.instance.getComplaint(req)
+
+        call.enqueue(object : Callback<FullComplaintResponse> {
+            override fun onResponse(call: Call<FullComplaintResponse>, response: Response<FullComplaintResponse>) {
+                if (response.isSuccessful) {
+                    val responseBody = response.body()
+                    if (responseBody != null && responseBody.found == "yes") {
+                        callback(true, responseBody.complaint, null)
+                    } else {
+                        callback(false, null, "No complaint found")
+                    }
+                } else {
+                    val errorMsg = response.errorBody()?.string() ?: "Unknown error"
+                    callback(false, null, errorMsg)
+                }
+            }
+
+            override fun onFailure(call: Call<FullComplaintResponse>, t: Throwable) {
+                callback(false, null, t.localizedMessage ?: "Network error")
             }
         })
     }
