@@ -23,19 +23,32 @@ import android.util.Log
 import android.webkit.WebView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.example.compensation_app.R
 import java.net.URLEncoder
@@ -105,21 +118,54 @@ fun SelectPdfButton(onFileSelected: (Uri?, String?) -> Unit) {
 }
 @Composable
 fun ImageRow(label: String, imageUrl: String) {
+    var showFullScreen by remember { mutableStateOf(false) } // State to control full-screen image
+
     Column(modifier = Modifier.padding(8.dp)) {
         Text(text = label, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.Black)
         Spacer(modifier = Modifier.height(4.dp))
-        AsyncImage(
-            model = imageUrl,
-            contentDescription = label,
-            contentScale = ContentScale.Crop,
+
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
-        )
+                .clickable { showFullScreen = true }, // Open full-screen on click
+            shape = RoundedCornerShape(8.dp),
+            elevation = CardDefaults.cardElevation(4.dp)
+        ) {
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = label,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(8.dp))
+            )
+        }
+    }
+
+    // Full-Screen Image Dialog
+    if (showFullScreen) {
+        Dialog(onDismissRequest = { showFullScreen = false }) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .clickable { showFullScreen = false }, // Close on click
+                contentAlignment = Alignment.Center
+            ) {
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = "Full Image",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight()
+                )
+            }
+        }
     }
 }
+
 
 @Composable
 fun FileDetails(pdfUri: State<Uri?>, pdfSizeError: State<String?>) {

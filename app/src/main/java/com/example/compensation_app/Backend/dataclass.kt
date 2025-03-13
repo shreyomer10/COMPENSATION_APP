@@ -19,43 +19,12 @@ data class emp(
     val range_: String,
     val beat: Int
 )
-data class UserResponse(
-    val UserId: String,
-    val name: String,
-    val mobile_number: String,
-    val DOB: String,
-    val division: String?,
-    val subdivision: String?,
-    val range_: String?,
-    val beat: String?
-)
-data class User(
-    val UserId: String,
-    val name: String,
-    val mobile_number: String,
-    val Password:String,
-    val DOB: String,
-    val division: String?,
-    val subdivision: String?,
-    val range_: String?,
-    val beat: String?
-)
 
-data class CheckUserRequest(
-    val UserId: String,
-    val Password: String
-)
 
-data class CheckUserResponse(
-    val success: Boolean,  // ✅ Now matches API response
-    val message: String,
-    val user: UserResponse?  // ✅ Ensures data structure consistency
-)
 
-data class AddUserResponse(
-    val success: Boolean,
-    val message: String
-)
+
+
+
 
 data class VerifyGuardRequest(
     val emp_id: String,

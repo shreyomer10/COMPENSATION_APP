@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -418,5 +419,25 @@ fun CompleteFormSectionCard(title: String, content: @Composable ColumnScope.() -
             }
             content()
         }
+    }
+}
+
+@Composable
+fun DetailRow(label: String, value: String?) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = Color.Gray,
+                fontWeight = FontWeight.Bold
+            )
+        )
+        Text(
+            text = value ?: "Not Provided (उपलब्ध नहीं)",
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color.Black,
+            modifier = Modifier.padding(vertical = 4.dp)
+        )
+        Divider(color = Color.LightGray.copy(alpha = 0.5f), thickness = 0.5.dp)
     }
 }

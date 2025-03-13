@@ -1,9 +1,11 @@
 package com.example.compensation_app.screens.guard
 
 import android.util.Log
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,6 +17,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,6 +53,8 @@ fun PrevApplicationScreen(navController: NavController,guard: String?) {
     val gguard = guard?.let {
         gson.fromJson(it, emp::class.java)
     }
+    var isLoading by remember { mutableStateOf(true) }  // Track loading state
+
     val viewModel: GuardViewModel = hiltViewModel()
     val auth = FirebaseAuth.getInstance()
     val mobileNumber = auth.currentUser?.phoneNumber
@@ -62,6 +67,7 @@ fun PrevApplicationScreen(navController: NavController,guard: String?) {
     if (gguard!=null)
     if (gguard.emp_id.isNotEmpty()) {
         viewModel.getFormsByID(GuardId = gguard.emp_id) { forms, message ->
+            isLoading=false
             if (forms != null && forms.isNotEmpty()) {
                 Log.d("Initiasl", "PrevApplicationScreen: $forms")
                 Forms = forms
@@ -95,21 +101,36 @@ fun PrevApplicationScreen(navController: NavController,guard: String?) {
                 .fillMaxWidth()
                 .height(50.dp),
             colors = TopAppBarDefaults.topAppBarColors(Color(0xFFFFFFFF)),
-            navigationIcon = { /* Navigation icon is handled within title */ }
         )
+        if(isLoading){
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(color = Color.Blue)
 
-        // Display the Forms list
-        LazyColumn {
-            if (Forms.isNotEmpty()) {
-                items(Forms) { form ->
-                    ApplicationItem(form=form, navController = navController,text=text)
-                }
-            } else {
-                item {
-                    Text(text = "No applications found", modifier = Modifier.padding(16.dp))
                 }
             }
         }
+        else{
+            LazyColumn {
+                if (Forms.isNotEmpty()) {
+                    items(Forms) { form ->
+                        ApplicationItem(form=form, navController = navController,text=text)
+                    }
+                } else {
+                    item {
+                        Text(text = "No applications found", modifier = Modifier.padding(16.dp))
+                    }
+                }
+            }
+        }
+
+        // Display the Forms list
+
     }
 }
 

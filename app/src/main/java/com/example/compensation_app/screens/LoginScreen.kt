@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -96,6 +98,9 @@ fun LoginScreen(navController: NavController) {
     val roles = listOf("forestguard", "deputyranger")
     var GuardGson:String=""
 
+    var isLoading by remember { mutableStateOf(false) } // Loading state
+
+
     LaunchedEffect(showToast) {
         showToast?.let {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
@@ -119,7 +124,7 @@ fun LoginScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(10.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -127,13 +132,13 @@ fun LoginScreen(navController: NavController) {
             painter = painterResource(id = R.drawable.logo),
             contentDescription = "App Logo",
             modifier = Modifier
-                .size(200.dp)
-                .padding(bottom = 30.dp)
+                .size(170.dp)
+                .padding(bottom = 10.dp)
         )
 
         Text(
             text = "Compensation App",
-            fontSize = 24.sp,
+            fontSize = 21.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Blue,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -141,9 +146,9 @@ fun LoginScreen(navController: NavController) {
 
         Text(
             text = "Official Login",
-            fontSize = 20.sp,
+            fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(bottom = 8.dp)
         )
 
         ExposedDropdownMenuBox(
@@ -210,11 +215,13 @@ fun LoginScreen(navController: NavController) {
         }
         Button(
             onClick = {
+                isLoading=true
                 viewModel.verifyGuard(
                     empId = guardId,
                     mobileNumber = mobileNumber,
                     roll =selectedRole
                 ) { message, guard ->
+                    isLoading=false
                     Log.d("VERIFIATION", "LoginScreen: $message , $guard")
 
                     if (message == "Verified" && guard!=null) {
@@ -247,16 +254,21 @@ fun LoginScreen(navController: NavController) {
                         verificationId = id
                     }
                     isOtpSent = true // Mark OTP as sent
+                    showToast = "OTP sent to your registered mobile number"
                 } else {
                     showToast = "Please enter mobile number and guard ID (कृपया मोबाइल नंबर और गार्ड आईडी दर्ज करें)"
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
-            enabled = !isOtpSent // Disable button after OTP is sent
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Blue, // Normal color
+                disabledContainerColor = Color.Gray // Gray when disabled
+            ),
+            enabled = (!isOtpSent && guardVerified) // Disable button after OTP is sent
         ) {
             Text(text = "Send OTP (ओटीपी भेजें)", color = Color.White)
         }
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -272,6 +284,7 @@ fun LoginScreen(navController: NavController) {
 
         Button(
             onClick = {
+
                 if (verificationId != null && otp.isNotEmpty()) {
                     verifyOTP(auth, verificationId!!, otp, context) {
                         isOTPVerified = true
@@ -326,5 +339,18 @@ fun LoginScreen(navController: NavController) {
             }
         }
 
+    }
+    if (isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                CircularProgressIndicator(color = Color.Blue)
+
+            }
+        }
     }
 }

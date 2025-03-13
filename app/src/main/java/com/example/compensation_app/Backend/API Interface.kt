@@ -1,5 +1,6 @@
 package com.example.compensation_app.Backend
 
+import com.google.gson.annotations.SerializedName
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
@@ -17,12 +18,6 @@ interface ApiService {
     @POST("/verify_guard")
     fun verifyGuard(@Body request: VerifyGuardRequest): Call<VerifyGuardResponse>
 
-    @POST("/add_user")
-    fun addUser(@Body user: User): Call<AddUserResponse>
-
-    // Check user API (Login)
-    @POST("/check_user")
-    fun checkUser(@Body request: CheckUserRequest): Call<CheckUserResponse>
 
     @POST("/compensationform")
     fun submitCompensationForm(@Body form: CompensationForm): Call<Void>
@@ -49,8 +44,19 @@ interface ApiService {
         @Path("form_id") formId: String,
         @Body request: UpdateFormStatusRequest
     ): Call<UpdateFormStatusResponse>
+    @POST("reject_complaint")
+    fun rejectComplaint(@Body request: RejectComplaintRequest): Call<ApiResponse>
 
 
 }
 
+data class RejectComplaintRequest(
+    @SerializedName("complaint_id") val complaintId: String,
+    @SerializedName("guardId") val guardId: String,
+    @SerializedName("comment") val comment: String
+)
 
+data class ApiResponse(
+    @SerializedName("message") val message: String?,
+    @SerializedName("error") val error: String?
+)

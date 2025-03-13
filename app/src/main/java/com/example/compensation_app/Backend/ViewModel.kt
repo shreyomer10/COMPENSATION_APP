@@ -2,14 +2,14 @@ package com.example.compensation_app.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.compensation_app.Backend.CheckUserRequest
-import com.example.compensation_app.Backend.CheckUserResponse
+import com.example.compensation_app.Backend.ApiResponse
+
 import com.example.compensation_app.Backend.CompensationForm
 import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.Backend.GuardRepository
+import com.example.compensation_app.Backend.RejectComplaintRequest
 import com.example.compensation_app.Backend.RetrivalForm
 import com.example.compensation_app.Backend.UpdateFormStatusResponse
-import com.example.compensation_app.Backend.User
 import com.example.compensation_app.Backend.UserComplaintForm
 import com.example.compensation_app.Backend.UserComplaintRetrievalForm
 import com.example.compensation_app.Backend.VerifyGuardRequest
@@ -37,23 +37,13 @@ class GuardViewModel @Inject constructor(
             guardRepository.addGuard(emp, onResult)
         }
     }
-    fun addUser(user: User, onResult: (Boolean, String?) -> Unit) {
-        viewModelScope.launch(Dispatchers.IO) {
-            guardRepository.addUser(user,onResult)
-        }
-    }
-    // Function to verify a guard
     fun verifyGuard(empId: String, mobileNumber: String, roll :String,onResult: (String, emp?) -> Unit) {
         val request = VerifyGuardRequest(emp_id = empId, mobile_number = mobileNumber,roll=roll)
         viewModelScope.launch(Dispatchers.IO) {
             guardRepository.verifyGuard(request, onResult)
         }
     }
-    fun verifyUser(request: CheckUserRequest ,onResult: (CheckUserResponse?,String?) -> Unit) {
-        viewModelScope.launch(Dispatchers.IO) {
-            guardRepository.checkUser(request, onResult)
-        }
-    }
+
     fun newApplicationForm(form:CompensationForm,onResult: (Boolean, String?) -> Unit){
         viewModelScope.launch (Dispatchers.IO){
             guardRepository.submitCompensationForm(form,onResult)
@@ -120,6 +110,22 @@ class GuardViewModel @Inject constructor(
             }
         }
     }
+
+    fun rejectComplaint(
+        request: RejectComplaintRequest,
+        onResult: (Result<String>) -> Unit  // Returning only message or error
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            guardRepository.rejectComplaint(request) { response, error ->
+                if (response != null) {
+                    onResult(Result.success(response.message ?: "Complaint rejected successfully"))
+                } else {
+                    onResult(Result.failure(Exception(error ?: "Unknown error")))
+                }
+            }
+        }
+    }
+
 
 
 

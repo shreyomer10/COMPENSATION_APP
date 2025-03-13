@@ -48,11 +48,10 @@ import com.example.compensation_app.screens.guard.ProfileScreem
 import com.example.compensation_app.screens.guard.complaints.ComplaintApplicationScreen
 import com.example.compensation_app.screens.guard.complaints.CompleteComplaintFormScreen
 import com.example.compensation_app.screens.user.CompensationScreen
-import com.example.compensation_app.screens.user.CompensationUserLoginScreen
 import com.example.compensation_app.screens.user.ComplaintForm
 import com.example.compensation_app.screens.user.DisplaySuccessScreen
+import com.example.compensation_app.screens.user.RetrivalComplaintDisplayScreen
 import com.example.compensation_app.screens.user.SearchComplaint
-import com.example.compensation_app.screens.user.SignUpScreen
 import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
@@ -101,7 +100,21 @@ fun Navigation(){
             // Decode JSON to Object
             val formData: UserComplaintForm = Gson().fromJson(jsonData, UserComplaintForm::class.java)
 
-            DisplaySuccessScreen(formData, complaintId)
+            DisplaySuccessScreen(navController,formData, complaintId)
+        }
+
+        composable(
+            route = NavigationScreens.RetrivalComplaintDisplayScreen.name + "/{encodedForm}",
+            arguments = listOf(navArgument("encodedForm") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val encodedForm = backStackEntry.arguments?.getString("encodedForm")
+            val decodedForm = encodedForm?.let {
+                URLDecoder.decode(it, StandardCharsets.UTF_8.toString())
+            }
+
+            AnimatedScreenTransition {
+                RetrivalComplaintDisplayScreen(navController = navController, encodedForm = decodedForm)
+            }
         }
         composable(route = NavigationScreens.ComplaintScreen.name){
             AnimatedScreenTransition {
@@ -115,18 +128,7 @@ fun Navigation(){
 
             }
         }
-        composable(route = NavigationScreens.UserLoginScreen.name){
-            AnimatedScreenTransition {
-                CompensationUserLoginScreen(navController)
 
-            }
-        }
-        composable(route = NavigationScreens.UserSignUpScreen.name){
-            AnimatedScreenTransition {
-                SignUpScreen(navController)
-
-            }
-        }
         composable(
             route = NavigationScreens.HomeScreen.name,
 

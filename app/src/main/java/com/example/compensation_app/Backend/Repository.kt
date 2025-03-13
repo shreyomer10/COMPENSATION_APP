@@ -42,60 +42,6 @@ class GuardRepository @Inject constructor() {
         })
     }
     // Add a new user to the server
-    fun addUser(user: User, onResult: (Boolean, String?) -> Unit) {
-        RetrofitClient.instance.addUser(user).enqueue(object : Callback<AddUserResponse> {
-            override fun onResponse(call: Call<AddUserResponse>, response: Response<AddUserResponse>) {
-                Log.d("API_RESPONSE", "Response: ${response.body()}")
-
-                if (response.isSuccessful) {
-                    val responseBody = response.body()
-                    if (responseBody?.success == true) {
-                        onResult(true, responseBody.message)
-                    } else {
-                        Log.e("API_ERROR", "Failed: ${responseBody?.message}")
-                        onResult(false, "Failed to add user: ${responseBody?.message ?: "Unknown error"}")
-                    }
-                } else {
-                    val errorResponse = response.errorBody()?.string()
-                    Log.e("API_ERROR", "Response failed: $errorResponse")
-                    onResult(false, "Failed to add user: $errorResponse")
-                }
-            }
-
-            override fun onFailure(call: Call<AddUserResponse>, t: Throwable) {
-                onResult(false, "Error: ${t.message}")
-            }
-        })
-    }
-
-    // Check user credentials (Login)
-    fun checkUser(request: CheckUserRequest, onResult: (CheckUserResponse?, String?) -> Unit) {
-        RetrofitClient.instance.checkUser(request).enqueue(object : Callback<CheckUserResponse> {
-            override fun onResponse(call: Call<CheckUserResponse>, response: Response<CheckUserResponse>) {
-                val responseBody = response.body()
-                Log.d("API_RESPONSE", "Response: $responseBody")
-
-                if (response.isSuccessful && responseBody != null) {
-                    if (responseBody.success) {
-                        onResult(responseBody, null)  // ✅ Success case
-                    } else {
-                        Log.e("API_ERROR", "Login failed: ${responseBody.message}")
-                        onResult(null, responseBody.message)
-                    }
-                } else {
-                    val errorResponse = response.errorBody()?.string()
-                    Log.e("API_ERROR", "Response failed: $errorResponse")
-                    onResult(null, errorResponse ?: "Server error")
-                }
-            }
-
-            override fun onFailure(call: Call<CheckUserResponse>, t: Throwable) {
-                Log.e("API_FAILURE", "Error: ${t.message}")
-                onResult(null, "Error: ${t.message}")
-            }
-        })
-    }
-
 
     // Verify a guard by employee ID and mobile number
     fun verifyGuard(request: VerifyGuardRequest, onResult: (String, emp?) -> Unit) {
@@ -300,6 +246,21 @@ class GuardRepository @Inject constructor() {
 
             override fun onFailure(call: Call<FullComplaintResponse>, t: Throwable) {
                 callback(false, null, t.localizedMessage ?: "Network error")
+            }
+        })
+    }
+    fun rejectComplaint(request: RejectComplaintRequest, onResult: (ApiResponse?, String?) -> Unit) {
+        RetrofitClient.instance.rejectComplaint(request).enqueue(object : Callback<ApiResponse> {
+            override fun onResponse(call: Call<ApiResponse>, response: Response<ApiResponse>) {
+                if (response.isSuccessful) {
+                    onResult(response.body(), null)
+                } else {
+                    onResult(null, "Failed to reject complaint: ${response.errorBody()?.string()}")
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse>, t: Throwable) {
+                onResult(null, "Error: ${t.message}")
             }
         })
     }

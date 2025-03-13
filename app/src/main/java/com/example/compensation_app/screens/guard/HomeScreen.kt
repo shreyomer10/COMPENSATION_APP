@@ -75,15 +75,7 @@ fun HomeScreen(navController: NavController) {
             subdivision = "",
             division = "", range_ = "", beat = 0))
     }
-//    viewModel.searchByMobile(mobile = formattedNumber) {guard, Message->
-//        if (guard != null) {
-//            Log.d("Final 0", "NewApplication: $guard")
-//            gguard=guard
-//            println("Guard fetched: $guard")
-//        } else {
-//            println("Error: $Message")
-//        }
-//    }
+
     mainViewModel.GetGuard {
         if (it != null) {
             gguard=it

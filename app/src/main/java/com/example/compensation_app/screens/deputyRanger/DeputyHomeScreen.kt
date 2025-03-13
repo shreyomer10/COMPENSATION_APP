@@ -92,12 +92,14 @@ fun DeputyHomeScreen(navController: NavController) {
     var Pending by remember { mutableStateOf<List<RetrivalForm>>(emptyList()) }
     var Accepted by remember { mutableStateOf<List<RetrivalForm>>(emptyList()) }
     var Rejected by remember { mutableStateOf<List<RetrivalForm>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }  // Track loading state
 
 
 
     LaunchedEffect(emp.emp_id) {
         if (emp.emp_id.isNotEmpty()) {
             viewModel.getFormsByDeptRangerID(deptRangerId = emp.emp_id) { forms, message ->
+                isLoading=false
                 if (!forms.isNullOrEmpty()) {
                     Forms = forms
                     PendingForYou = forms.filter { it.status == "2" }
@@ -285,50 +287,62 @@ fun DeputyHomeScreen(navController: NavController) {
                     }
                 }
             )
+            if(isLoading){
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(color = Color.Blue)
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Center the buttons vertically
-            // Center the buttons vertically
-            Button(
-                onClick = { navController.navigate(NavigationScreens.PendingForYouScreen.name + "/$encodedEmpJson/$encodedPendingForYou") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(Color(0xFF4379FF))
-            ) {
-                Text(text = "Pending (For You)", color = Color.White)
+                    }
+                }
             }
+            else{
+                Spacer(modifier = Modifier.height(32.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
+                // Center the buttons vertically
+                // Center the buttons vertically
+                Button(
+                    onClick = { navController.navigate(NavigationScreens.PendingForYouScreen.name + "/$encodedEmpJson/$encodedPendingForYou") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(Color(0xFF4379FF))
+                ) {
+                    Text(text = "Pending (For You)", color = Color.White)
+                }
 
-            Button(
-                onClick = { navController.navigate(NavigationScreens.PendingScreen.name + "/$encodedEmpJson/$encodedPending") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(Color(0xFF4379FF))
-            ) {
-                Text(text = "Pending", color = Color.White)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = { navController.navigate(NavigationScreens.PendingScreen.name + "/$encodedEmpJson/$encodedPending") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(Color(0xFF4379FF))
+                ) {
+                    Text(text = "Pending", color = Color.White)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = { navController.navigate(NavigationScreens.AcceptedScreen.name + "/$encodedEmpJson/$encodedAccepted") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(Color(0xFF5D8BFF))
+                ) {
+                    Text(text = "Accepted", color = Color.White)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = { navController.navigate(NavigationScreens.RejectedScreen.name + "/$encodedEmpJson/$encodedRejected") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(Color(0xFFFF4C4C))
+                ) {
+                    Text(text = "Rejected", color = Color.White)
+                }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = { navController.navigate(NavigationScreens.AcceptedScreen.name + "/$encodedEmpJson/$encodedAccepted") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(Color(0xFF5D8BFF))
-            ) {
-                Text(text = "Accepted", color = Color.White)
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = { navController.navigate(NavigationScreens.RejectedScreen.name + "/$encodedEmpJson/$encodedRejected") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(Color(0xFFFF4C4C))
-            ) {
-                Text(text = "Rejected", color = Color.White)
-            }
-
-
 
         }
     }

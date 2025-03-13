@@ -8,8 +8,7 @@ enum class NavigationScreens {
     ComplaintScreen,
     DisplaySuccessScreen,
     SearchComplaintForm,
-    UserLoginScreen,
-    UserSignUpScreen,
+    RetrivalComplaintDisplayScreen,
     LoginScreen,
     HomeScreen,
     NewApplicationScreen,
@@ -34,8 +33,7 @@ enum class NavigationScreens {
                 ComplaintScreen.name->ComplaintScreen
                 DisplaySuccessScreen.name->DisplaySuccessScreen
                 SearchComplaintForm.name->SearchComplaintForm
-                UserLoginScreen.name->UserLoginScreen
-                UserSignUpScreen.name->UserSignUpScreen
+                RetrivalComplaintDisplayScreen.name->RetrivalComplaintDisplayScreen
                 LoginScreen.name->LoginScreen
                 HomeScreen.name->HomeScreen
                 NewApplicationScreen.name->NewApplicationScreen

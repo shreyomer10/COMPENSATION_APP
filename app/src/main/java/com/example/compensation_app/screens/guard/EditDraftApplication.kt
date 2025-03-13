@@ -631,11 +631,12 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
 
                                                         if (success) {
                                                             showToast = "Form submitted successfully!"
+                                                            navController.popBackStack()
+
                                                         } else {
                                                             showToast = "Error: $status"
                                                         }
                                                     }
-                                                    navController.popBackStack()
                                                 } else {
                                                     showToast = "Please Check all fields (कृपया सभी फ़ील्ड्स की जांच करें)"
                                                     isUploading = false

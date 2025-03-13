@@ -35,17 +35,21 @@ fun CompensationScreen(navController: NavController) {
             painter = painterResource(id = R.drawable.logo),
             contentDescription = "App Logo",
             modifier = Modifier
-                .size(200.dp)
+                .size(230.dp)
                 .padding(bottom = 20.dp)
         )
 
-        Text(
-            text = "Compensation App",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Blue,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Compensation App",
+                fontSize = 27.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Blue
+            )
+        }
 
         ButtonComponent("Apply for Compensation"){
             navController.navigate(NavigationScreens.ComplaintScreen.name)
