@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -196,18 +198,7 @@ fun InputField(label: String, value: String, onValueChange: (String) -> Unit, ke
             .padding(vertical = 8.dp)
     )
 }
-fun getStatusLabel(status: String): String {
-    return when (status.toIntOrNull()) {
-        1 -> "Forest Guard Level (वन रक्षक स्तर)"
-        2 -> "Deputy Ranger Level (उप-रेंजर स्तर)"
-        3 -> "Ranger Level (रेंजर स्तर)"
-        4 -> "Subdivision Level (उपमंडल स्तर)"
-        5 -> "Division Level (मंडल स्तर)"
-        6 -> "Payment Processed (भुगतान संसाधित)"
-        -1 -> "Rejected (अस्वीकृत)"
-        else -> "Unknown Status (अज्ञात स्थिति)"
-    }
-}
+
 fun getCurrentTimestamp(): String {
     return SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
 }
@@ -439,5 +430,53 @@ fun DetailRow(label: String, value: String?) {
             modifier = Modifier.padding(vertical = 4.dp)
         )
         Divider(color = Color.LightGray.copy(alpha = 0.5f), thickness = 0.5.dp)
+    }
+}
+
+@Composable
+fun TopAppBarOP(navController: NavController, greetings: String, onMenuClick: () -> Unit) {
+    val backgroundColor = Color(0xFF4379FF)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .statusBarsPadding() // Ensures it is placed below the notch
+            // .background(backgroundColor)
+            .padding(horizontal = 16.dp)
+            .padding(top = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Hamburger menu icon
+            IconButton(onClick = onMenuClick) {
+                Icon(
+                    imageVector = Icons.Default.Menu,
+                    contentDescription = "Menu (मेनू)",
+                    tint = Color.Black
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = greetings,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+        }
+    }
+}
+fun getStatusLabel(status: String): String {
+    return when (status) {
+        "1" -> "Filled by User"
+        "2" -> "Submitted by Guard"
+        "3" -> "Verified by Deputy Ranger"
+        "4" -> "Verified by Ranger"
+        "5" -> "Verified by SDO"
+        "6" -> "Payment Approved"
+        "-1" -> "Rejected"
+        else -> "Unknown Status"
     }
 }

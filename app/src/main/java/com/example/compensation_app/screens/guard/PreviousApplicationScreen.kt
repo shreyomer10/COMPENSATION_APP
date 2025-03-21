@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -64,6 +65,11 @@ fun PrevApplicationScreen(navController: NavController,guard: String?) {
     var Forms by remember {
         mutableStateOf<List<RetrivalForm>>(emptyList())
     }
+
+    var PendingForYou by remember { mutableStateOf<List<RetrivalForm>>(emptyList()) }
+    var Pending by remember { mutableStateOf<List<RetrivalForm>>(emptyList()) }
+    var Accepted by remember { mutableStateOf<List<RetrivalForm>>(emptyList()) }
+    var Rejected by remember { mutableStateOf<List<RetrivalForm>>(emptyList()) }
     if (gguard!=null)
     if (gguard.emp_id.isNotEmpty()) {
         viewModel.getFormsByID(GuardId = gguard.emp_id) { forms, message ->
@@ -71,12 +77,23 @@ fun PrevApplicationScreen(navController: NavController,guard: String?) {
             if (forms != null && forms.isNotEmpty()) {
                 Log.d("Initiasl", "PrevApplicationScreen: $forms")
                 Forms = forms
+                PendingForYou = forms.filter { it.status == "1" }
+                Pending = forms.filter { it.status in arrayOf("2","3", "4", "5") }
+                Accepted = forms.filter { it.status == "6" }
+                Rejected = forms.filter { it.status == "-1" }
                 Log.d("Forms", "Fetched Forms: $Forms")
             } else {
                 Log.d("Forms", "No forms found or error: $message")
             }
         }
     }
+
+    val encodedPending = URLEncoder.encode(gson.toJson(Pending), StandardCharsets.UTF_8.toString())
+    val encodedPendingForYou = URLEncoder.encode(gson.toJson(PendingForYou), StandardCharsets.UTF_8.toString())
+    val encodedAccepted = URLEncoder.encode(gson.toJson(Accepted), StandardCharsets.UTF_8.toString())
+    val encodedRejected = URLEncoder.encode(gson.toJson(Rejected), StandardCharsets.UTF_8.toString())
+    val encodedEmpJson = URLEncoder.encode(gson.toJson(gguard), StandardCharsets.UTF_8.toString())
+
     Column {
         androidx.compose.material3.TopAppBar(
             title = {
@@ -116,18 +133,61 @@ fun PrevApplicationScreen(navController: NavController,guard: String?) {
             }
         }
         else{
-            LazyColumn {
-                if (Forms.isNotEmpty()) {
-                    items(Forms) { form ->
-                        ApplicationItem(form=form, navController = navController,text=text)
-                    }
-                } else {
-                    item {
-                        Text(text = "No applications found", modifier = Modifier.padding(16.dp))
-                    }
-                }
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Center the buttons vertically
+            // Center the buttons vertically
+            Button(
+                onClick = { navController.navigate(NavigationScreens.PendingForYouScreen.name + "/$encodedEmpJson/$encodedPendingForYou") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(Color(0xFF4379FF))
+            ) {
+                Text(text = "Pending (For You)", color = Color.White)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { navController.navigate(NavigationScreens.PendingScreen.name + "/$encodedEmpJson/$encodedPending") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(Color(0xFF4379FF))
+            ) {
+                Text(text = "Pending", color = Color.White)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { navController.navigate(NavigationScreens.AcceptedScreen.name + "/$encodedEmpJson/$encodedAccepted") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(Color(0xFF5D8BFF))
+            ) {
+                Text(text = "Accepted", color = Color.White)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { navController.navigate(NavigationScreens.RejectedScreen.name + "/$encodedEmpJson/$encodedRejected") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(Color(0xFFFF4C4C))
+            ) {
+                Text(text = "Rejected", color = Color.White)
             }
         }
+//        else{
+//            LazyColumn {
+//                if (Forms.isNotEmpty()) {
+//                    items(Forms) { form ->
+//                        ApplicationItem(form=form, navController = navController,text=text)
+//                    }
+//                } else {
+//                    item {
+//                        Text(text = "No applications found", modifier = Modifier.padding(16.dp))
+//                    }
+//                }
+//            }
+//        }
 
         // Display the Forms list
 

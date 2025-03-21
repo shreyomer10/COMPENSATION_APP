@@ -110,12 +110,7 @@ fun SplashScreen(navController: NavController) {
         }
     }
 
-//    LaunchedEffect(key1 = true) {
-//        startAnimation = true
-//        delay(1000) // Delay for the splash screen to show
-//        navController.navigate(NavigationScreens.LoginScreen.name)
-//
-//    }
+
 
     Box(
         contentAlignment = Alignment.Center,

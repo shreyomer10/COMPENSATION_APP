@@ -20,12 +20,6 @@ data class emp(
     val beat: Int
 )
 
-
-
-
-
-
-
 data class VerifyGuardRequest(
     val emp_id: String,
     val mobile_number: String,
@@ -126,7 +120,6 @@ data class UserComplaintRetrievalForm(
     var animalList: String?,
     var damageDate: String?,
     var additionalDetails: String?,
-
     var address: String?,
     var division: String?,
     var subdivision: String?,
@@ -135,23 +128,14 @@ data class UserComplaintRetrievalForm(
     var beat: String?,
     var cropType: String?,
     var cerealCrop: String?,
-
     var fullHousesDamaged: String ?,
     var partialHousesDamaged: String?,
-
     var cattleInjuryNumber: String?,
     var cattleInjuryEstimatedAge: String ?,
-
     var humanDeathVictimNames: String ?,
     var humanDeathNumber: String?,
-
-
     var temporaryInjuryDetails: String?,
     var permanentInjuryDetails: String?,
-
-
-
-
     var photoUrl:String?,
     var eSignUrl:String?,
     var incidentUrl1:String?,

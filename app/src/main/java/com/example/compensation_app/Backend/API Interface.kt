@@ -31,7 +31,9 @@ interface ApiService {
 
     @GET("/guards/{mobile_number}")
     fun getGuardByMobileNumber(@retrofit2.http.Path("mobile_number") mobileNumber: String): Call<emp>
-    @GET("/compensationform/{forest_guard_id}")
+//    @GET("/compensationform/{forest_guard_id}")
+//    fun getCompensationFormsByGuardId(@Path("forest_guard_id") forestGuardId: String): Call<List<RetrivalForm>>
+    @GET("/compensationform/forestguard/{forest_guard_id}")
     fun getCompensationFormsByGuardId(@Path("forest_guard_id") forestGuardId: String): Call<List<RetrivalForm>>
 
     @GET("/compensationform/deputyranger/{dept_ranger_id}")

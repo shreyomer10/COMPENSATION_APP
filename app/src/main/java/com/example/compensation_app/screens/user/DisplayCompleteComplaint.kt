@@ -143,8 +143,11 @@ fun RetrivalComplaintDisplayScreen(navController: NavController, encodedForm: St
                     // Group 7: Status
                     item {
                         CompleteFormSectionCard(title = "Form Status (प्रपत्र स्थिति)") {
-                            DetailRow(label = "Status (स्थिति)", value = retrivalForm.status)
-                        }
+                            DetailRow(label = "Status (स्थिति)", value = retrivalForm.status?.let {
+                                getStatusLabel(
+                                    it
+                                )
+                            })                        }
                     }
                     item {
                         CompleteFormSectionCard(title = "Status History (स्थिति इतिहास)") {

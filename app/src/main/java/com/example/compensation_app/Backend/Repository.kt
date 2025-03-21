@@ -101,28 +101,7 @@ class GuardRepository @Inject constructor() {
             }
         })
     }
-    fun getCompensationFormsByGuardId(
-        forestGuardId: String,
-        onResult: (List<RetrivalForm>?, String?) -> Unit
-    ) {
-        RetrofitClient.instance.getCompensationFormsByGuardId(forestGuardId)
-            .enqueue(object : Callback<List<RetrivalForm>> {
-                override fun onResponse(
-                    call: Call<List<RetrivalForm>>,
-                    response: Response<List<RetrivalForm>>
-                ) {
-                    if (response.isSuccessful) {
-                        onResult(response.body(), null)
-                    } else {
-                        onResult(null, "Failed to fetch compensation forms: ${response.errorBody()?.string()}")
-                    }
-                }
 
-                override fun onFailure(call: Call<List<RetrivalForm>>, t: Throwable) {
-                    onResult(null, "Error: ${t.message}")
-                }
-            })
-    }
     data class guardComplaintRequest(val guardId: String,)
 
     fun getGuardComplaints(
@@ -158,6 +137,28 @@ class GuardRepository @Inject constructor() {
         onResult: (List<RetrivalForm>?, String?) -> Unit
     ) {
         RetrofitClient.instance.getCompensationFormsByDeptRangerID(deptRangerId)
+            .enqueue(object : Callback<List<RetrivalForm>> {
+                override fun onResponse(
+                    call: Call<List<RetrivalForm>>,
+                    response: Response<List<RetrivalForm>>
+                ) {
+                    if (response.isSuccessful) {
+                        onResult(response.body(), null)
+                    } else {
+                        onResult(null, "Failed to fetch compensation forms: ${response.errorBody()?.string()}")
+                    }
+                }
+
+                override fun onFailure(call: Call<List<RetrivalForm>>, t: Throwable) {
+                    onResult(null, "Error: ${t.message}")
+                }
+            })
+    }
+    fun getCompensationFormsByGuardId(
+        forestGuardId: String,
+        onResult: (List<RetrivalForm>?, String?) -> Unit
+    ) {
+        RetrofitClient.instance.getCompensationFormsByGuardId(forestGuardId)
             .enqueue(object : Callback<List<RetrivalForm>> {
                 override fun onResponse(
                     call: Call<List<RetrivalForm>>,

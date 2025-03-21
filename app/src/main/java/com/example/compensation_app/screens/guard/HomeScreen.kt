@@ -34,6 +34,7 @@ import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.Navigation.NavigationScreens
 import com.example.compensation_app.Navigation.clearLoginStatus
 import com.example.compensation_app.components.SignOut
+import com.example.compensation_app.components.TopAppBarOP
 import com.example.compensation_app.sqlite.MainViewModel
 
 import com.example.compensation_app.viewmodel.GuardViewModel
@@ -212,8 +213,8 @@ fun HomeScreen(navController: NavController) {
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // TopAppBar with hamburger menu
-            TopAppBar(
+            // TopAppBarOP with hamburger menu
+            TopAppBarOP(
                 navController = navController,
                 greetings = "Welcome (स्वागत है)",
                 onMenuClick = { // Open the drawer on menu click
@@ -238,17 +239,6 @@ fun HomeScreen(navController: NavController) {
                 ) {
                     Text(text = "Submit New Application (नई आवेदन प्रस्तुत करें)", color = Color.White)
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(
-                    onClick = { navController.navigate(NavigationScreens.PendingForYouScreenGuard.name+"/$encodedGuardJson")/* Navigate to Submit New Application Screen */ },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(Color(0xFF4379FF))
-                ) {
-                    Text(text = "Pending (नई आवेदन प्रस्तुत करें)", color = Color.White)
-                }
-
                 Spacer(modifier = Modifier.height(16.dp))
 
 
@@ -285,38 +275,3 @@ fun HomeScreen(navController: NavController) {
     }
 }
 
-@Composable
-fun TopAppBar(navController: NavController, greetings: String, onMenuClick: () -> Unit) {
-    val backgroundColor = Color(0xFF4379FF)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .statusBarsPadding() // Ensures it is placed below the notch
-            // .background(backgroundColor)
-            .padding(horizontal = 16.dp)
-            .padding(top = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Hamburger menu icon
-            IconButton(onClick = onMenuClick) {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = "Menu (मेनू)",
-                    tint = Color.Black
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = greetings,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
-        }
-    }
-}

@@ -193,7 +193,11 @@ fun RetrivalFormDetailsScreen(navController: NavController, encodedForm: String?
                     Spacer(modifier = Modifier.height(16.dp))
 
                     CompleteFormSectionCard(title = "Form Status (प्रपत्र स्थिति)") {
-                        DetailRow(label = "Status (स्थिति)", value = retrivalForm.status)
+                        DetailRow(label = "Status (स्थिति)", value = retrivalForm.status?.let {
+                            getStatusLabel(
+                                it
+                            )
+                        })
                         DetailRow(label = "Verified By (द्वारा सत्यापित)", value = retrivalForm.verifiedBy)
                         DetailRow(label = "Payment Processed By (द्वारा भुगतान संसाधित)", value = retrivalForm.paymentProcessedBy)
                     }
@@ -281,18 +285,7 @@ fun RetrivalFormDetailsScreen(navController: NavController, encodedForm: String?
                                     keyboardType = KeyboardType.Text
                                 )
 
-//                                OutlinedTextField(
-//                                    value = comment,
-//                                    onValueChange = { comment = it },
-//                                    label = { Text("Add your comments here...") },
-//                                    modifier = Modifier
-//                                        .fillMaxWidth()
-//                                        .height(120.dp),
-//                                    keyboardOptions = KeyboardOptions.Default.copy(
-//                                        capitalization = KeyboardCapitalization.None // Normal keyboard input
-//                                    ),
-//                                    enabled = selectedAction == "Forward"
-//                                )
+
 
                                 Spacer(modifier = Modifier.height(16.dp))
 
