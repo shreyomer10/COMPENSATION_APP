@@ -40,6 +40,7 @@ import androidx.navigation.NavController
 import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.Backend.UserComplaintRetrievalForm
 import com.example.compensation_app.Navigation.NavigationScreens
+import com.example.compensation_app.components.getStatusLabel
 import com.example.compensation_app.viewmodel.GuardViewModel
 import com.google.gson.Gson
 import java.net.URLEncoder
@@ -138,13 +139,14 @@ fun ApplicationItem(navController: NavController, form: UserComplaintRetrievalFo
     val gson = Gson()
     val jsonForm = gson.toJson(form)
     val encodedForm = URLEncoder.encode(jsonForm, StandardCharsets.UTF_8.toString())
+    val statusString = form.status?.let { getStatusLabel(it) }
 
     Card(
         elevation = CardDefaults.elevatedCardElevation(4.dp),
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .height(120.dp)
+            .height(150.dp)
     ) {
         Column(
             modifier = Modifier
@@ -152,16 +154,30 @@ fun ApplicationItem(navController: NavController, form: UserComplaintRetrievalFo
                 .padding(12.dp)
         ) {
             Text(
+                text = "Application ID: ${form.complaint_id}",
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            Text(
                 text = "Applicant Name: ${form.name}",
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
+
             Text(
                 text = "Mobile: ${form.mobile}",
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,
                 modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Text(
+                text = "Status: $statusString",
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                modifier = Modifier.padding(bottom = 4.dp)
             )
             Button(
                 onClick = {

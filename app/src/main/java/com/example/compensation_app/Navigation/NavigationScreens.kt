@@ -10,6 +10,8 @@ enum class NavigationScreens {
     SearchComplaintForm,
     RetrivalComplaintDisplayScreen,
     LoginScreen,
+    SignUpScreen,
+    UpdatePass,
     HomeScreen,
     NewApplicationScreen,
     ComplaintApplicationGuard,
@@ -24,7 +26,9 @@ enum class NavigationScreens {
     PendingScreen,
     AcceptedScreen,
     RejectedScreen,
-    ProfileScreen;
+    ProfileScreen,
+    AboutUs,
+    ContactUs;
     companion object{
         fun fromRoute(route :String):NavigationScreens=
             when(route.substringBefore("/")){
@@ -35,6 +39,8 @@ enum class NavigationScreens {
                 SearchComplaintForm.name->SearchComplaintForm
                 RetrivalComplaintDisplayScreen.name->RetrivalComplaintDisplayScreen
                 LoginScreen.name->LoginScreen
+                SignUpScreen.name->SignUpScreen
+                UpdatePass.name->UpdatePass
                 HomeScreen.name->HomeScreen
                 NewApplicationScreen.name->NewApplicationScreen
                 ComplaintApplicationGuard.name->ComplaintApplicationGuard
@@ -50,6 +56,8 @@ enum class NavigationScreens {
                 PendingForYouScreen.name->PendingForYouScreen
                 AcceptedScreen.name->AcceptedScreen
                 RejectedScreen.name->RejectedScreen
+                AboutUs.name->AboutUs
+                ContactUs.name->ContactUs
 
                 else-> throw IllegalArgumentException("Route $route not found ")
 

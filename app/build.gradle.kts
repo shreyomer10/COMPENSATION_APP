@@ -24,6 +24,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
     }
 
     buildTypes {
@@ -75,7 +76,7 @@ dependencies {
     implementation( "com.google.accompanist:accompanist-permissions:0.33.2-alpha")
 
     implementation("com.google.maps.android:maps-compose:2.14.0")
-    implementation("com.google.android.gms:play-services-maps:18.2.0")
+
     //implementation("com.google.android.gms:play-services-location:21.0.1")
 
 
@@ -128,9 +129,17 @@ dependencies {
     // If you're using libs.versions.toml, ensure that only relevant aliases are defined.
 
     implementation ("com.google.android.gms:play-services-location:21.3.0")
-    implementation ("com.google.android.gms:play-services-maps:19.0.0")
+    implementation ("com.google.android.gms:play-services-maps:19.1.0")
+
+    implementation ("com.google.maps.android:maps-compose:2.14.0")
+
+    implementation ("androidx.security:security-crypto:1.1.0-alpha06")
 
 
 
-
+    implementation ("androidx.compose.material:material-icons-extended:1.5.4")
 }
+
+
+
+

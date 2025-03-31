@@ -1,4 +1,5 @@
 package com.example.compensation_app.screens.user
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -6,8 +7,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,6 +32,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.compensation_app.Backend.UserComplaintRetrievalForm
 import com.example.compensation_app.Navigation.NavigationScreens
+import com.example.compensation_app.components.CaptchaImage
+import com.example.compensation_app.components.generateCaptchaText
 import com.example.compensation_app.screens.guard.ApplicationItem
 import com.example.compensation_app.viewmodel.GuardViewModel
 import com.google.gson.Gson
@@ -46,6 +51,13 @@ fun SearchComplaint(navController: NavController) {
     var complaint by remember { mutableStateOf<UserComplaintRetrievalForm?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val viewModel: GuardViewModel = hiltViewModel()
+
+
+    var captchaText by remember { mutableStateOf(generateCaptchaText()) }
+    var userInput by remember { mutableStateOf("") }
+    var isVerified by remember { mutableStateOf(false) }
+    var isClicked by remember { mutableStateOf(0) }
+
     Column {
         androidx.compose.material3.TopAppBar(
             title = {
@@ -75,7 +87,8 @@ fun SearchComplaint(navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Complaint ID Input
             OutlinedTextField(
@@ -97,17 +110,71 @@ fun SearchComplaint(navController: NavController) {
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Submit Button
-            Button(
-                onClick = { showDialog = true },
-                modifier = Modifier.fillMaxWidth()
+            Box(
+                modifier = Modifier
+                    .border(2.dp, Color.Gray) // Outline with gray border
+                    .padding(4.dp) // Optional padding inside the border
+                    .fillMaxWidth()
             ) {
-                Text("Submit")
+                CaptchaImage(captchaText)
             }
 
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = userInput,
+                onValueChange = { userInput = it },
+                label = { Text("Type Captcha Code Here") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row {
+                Button(
+                    onClick = {
+                        if (userInput == captchaText) {
+                            isVerified = true
+                        } else {
+                            isVerified = false
+                            captchaText = generateCaptchaText() // Refresh captcha on wrong input
+                        }
+                        isClicked += 1
+                    }
+                ) {
+                    Text("Verify")
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                IconButton(onClick = { captchaText = generateCaptchaText() }) {
+                    Icon(imageVector = Icons.Default.Refresh, contentDescription = "Refresh")
+                }
+            }
+
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (isVerified && isClicked!=0) {
+                Text("✔ Captcha Verified!", color = Color.Green, fontWeight = FontWeight.Bold)
+            } else if(isClicked!=0) {
+                Text("✖ Incorrect, Try Again", color = Color.Red, fontWeight = FontWeight.Bold)
+            }
+
+            Button(
+                onClick = { showDialog = true },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF0A66C2),
+                    disabledContainerColor = Color.Gray // Gray when disabled
+                ),
+                enabled = isVerified
+            ) {
+                Text("Submit", color = Color.White)
+            }
+
+
             // Confirmation Dialog
-            if (showDialog) {
+            if (showDialog && isVerified) {
                 AlertDialog(
                     onDismissRequest = { showDialog = false },
                     title = { Text("Confirm Submission") },
@@ -177,7 +244,7 @@ fun ComplaintDetails(complaint: UserComplaintRetrievalForm,navController: NavCon
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable { navController.navigate(NavigationScreens.RetrivalComplaintDisplayScreen.name+"/$encodedForm") },
+            .clickable { navController.navigate(NavigationScreens.RetrivalComplaintDisplayScreen.name + "/$encodedForm") },
         elevation =CardDefaults.elevatedCardElevation(4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {

@@ -10,7 +10,7 @@ import com.example.compensation_app.Backend.emp
 
 @Database(entities = [
     FormData::class,
-    emp::class], version = 6)
+    emp::class], version = 8)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun DraftFormDao(): DraftFormDao
     abstract fun GuardDao():GuardDao

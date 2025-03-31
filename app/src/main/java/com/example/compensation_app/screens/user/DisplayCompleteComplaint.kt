@@ -96,6 +96,8 @@ fun RetrivalComplaintDisplayScreen(navController: NavController, encodedForm: St
                             DetailRow(label = "Applicant Name (आवेदक का नाम)", value = retrivalForm.name)
                             DetailRow(label = "Age (आयु)", value = retrivalForm.age?.toString())
                             DetailRow(label = "Father/Spouse Name (पिता/पति का नाम)", value = retrivalForm.fatherOrSpouseName)
+                            DetailRow(label = "Email", value = retrivalForm.email)
+
                             DetailRow(label = "Mobile (मोबाइल)", value = retrivalForm.mobile)
                         }
                     }

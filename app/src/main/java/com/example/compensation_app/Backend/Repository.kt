@@ -1,6 +1,8 @@
 package com.example.compensation_app.Backend
 
 import android.util.Log
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.compensation_app.sqlite.MainViewModel
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -8,6 +10,72 @@ import javax.inject.Inject
 
 class GuardRepository @Inject constructor() {
 
+    fun login(loginRequest: LoginRequest, onResult: (LoginResponse?, String?) -> Unit) {
+        RetrofitClient.instance.login(loginRequest).enqueue(object : Callback<LoginResponse> {
+            override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
+                if (response.isSuccessful) {
+                    onResult(response.body(), null)
+                } else {
+
+                    onResult(null, "Login failed: ${response.errorBody()?.string()}")
+                }
+            }
+
+            override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
+                onResult(null, "Error: ${t.message}")
+            }
+        })
+    }
+    fun refreshToken(onResult: (LoginResponse?, String?) -> Unit) {
+        RetrofitClient.instance.refreshToken().enqueue(object : Callback<LoginResponse> {
+            override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
+                if (response.isSuccessful) {
+                    onResult(response.body(), null)
+                } else {
+                    if (response.code() == 401 || response.code() == 403) {
+                        //onLogout() // Logout user
+                    }
+                    onResult(null, "Token refresh failed: ${response.errorBody()?.string()}")
+                }
+            }
+
+            override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
+                onResult(null, "Error: ${t.message}")
+            }
+        })
+    }
+
+    fun register(empRequest: LoginRequest, onResult: (ApiResponse?, String?) -> Unit) {
+        RetrofitClient.instance.register(empRequest).enqueue(object : Callback<ApiResponse> {
+            override fun onResponse(call: Call<ApiResponse>, response: Response<ApiResponse>) {
+                if (response.isSuccessful) {
+                    onResult(response.body(), null)
+                } else {
+                    onResult(null, "Error: ${response.errorBody()?.string()}")
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse>, t: Throwable) {
+                onResult(null, "Error: ${t.message}")
+            }
+        })
+    }
+    fun updatePass(empRequest: LoginRequest, onResult: (ApiResponse?, String?) -> Unit) {
+        RetrofitClient.instance.updatePass(empRequest).enqueue(object : Callback<ApiResponse> {
+            override fun onResponse(call: Call<ApiResponse>, response: Response<ApiResponse>) {
+                if (response.isSuccessful) {
+                    onResult(response.body(), null)
+                } else {
+
+                    onResult(null, "Error: ${response.errorBody()?.string()}")
+                }
+            }
+
+            override fun onFailure(call: Call<ApiResponse>, t: Throwable) {
+                onResult(null, "Error: ${t.message}")
+            }
+        })
+    }
     // Fetch guards from the server
     fun getGuards(onResult: (List<emp>?, String?) -> Unit) {
         RetrofitClient.instance.getGuards().enqueue(object : Callback<List<emp>> {
@@ -44,26 +112,18 @@ class GuardRepository @Inject constructor() {
     // Add a new user to the server
 
     // Verify a guard by employee ID and mobile number
-    fun verifyGuard(request: VerifyGuardRequest, onResult: (String, emp?) -> Unit) {
-        RetrofitClient.instance.verifyGuard(request).enqueue(object : Callback<VerifyGuardResponse> {
-            override fun onResponse(
-                call: Call<VerifyGuardResponse>,
-                response: Response<VerifyGuardResponse>
-            ) {
+    fun verifyGuard(verifyGuardRequest: VerifyGuardRequest, onResult: (VerifyGuardResponse?, String?) -> Unit) {
+        RetrofitClient.instance.verifyGuard(verifyGuardRequest).enqueue(object : Callback<VerifyGuardResponse> {
+            override fun onResponse(call: Call<VerifyGuardResponse>, response: Response<VerifyGuardResponse>) {
                 if (response.isSuccessful) {
-                    val body = response.body()
-                    if (body != null && body.employee != null) {
-                        onResult("Verified", body.employee)
-                    } else {
-                        onResult(body?.message ?: "Employee not found", null)
-                    }
+                    onResult(response.body(), null)
                 } else {
-                    onResult("Error: ${response.errorBody()?.string()}", null)
+                    onResult(null, "Verification failed: ${response.errorBody()?.string()}")
                 }
             }
 
             override fun onFailure(call: Call<VerifyGuardResponse>, t: Throwable) {
-                onResult("API call failed: ${t.message}", null)
+                onResult(null, "Error: ${t.message}")
             }
         })
     }
@@ -176,6 +236,29 @@ class GuardRepository @Inject constructor() {
                 }
             })
     }
+    fun sendEmail(
+        email: String,
+        message: String,
+        onResult: (Boolean, String?) -> Unit
+    ) {
+        val request = EmailRequest(email, message)
+
+        RetrofitClient.instance.sendEmail(request)
+            .enqueue(object : Callback<EmailResponse> {
+                override fun onResponse(call: Call<EmailResponse>, response: Response<EmailResponse>) {
+                    if (response.isSuccessful) {
+                        onResult(true, null)
+                    } else {
+                        onResult(false, "Failed to send email: ${response.errorBody()?.string()}")
+                    }
+                }
+
+                override fun onFailure(call: Call<EmailResponse>, t: Throwable) {
+                    onResult(false, "Error: ${t.message}")
+                }
+            })
+    }
+
 
 
     fun updateFormStatus(

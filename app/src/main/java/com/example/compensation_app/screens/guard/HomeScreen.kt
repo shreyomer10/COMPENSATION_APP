@@ -1,6 +1,10 @@
 package com.example.compensation_app.screens.guard
 
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 
 import androidx.compose.material3.ButtonDefaults
@@ -23,17 +28,24 @@ import androidx.compose.ui.graphics.Color
 
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.Navigation.NavigationScreens
+import com.example.compensation_app.Navigation.SecureStorage
 import com.example.compensation_app.Navigation.clearLoginStatus
+import com.example.compensation_app.Navigation.saveLoginStatus
+import com.example.compensation_app.R
 import com.example.compensation_app.components.SignOut
+import com.example.compensation_app.components.TokenCountdownDisplay
 import com.example.compensation_app.components.TopAppBarOP
 import com.example.compensation_app.sqlite.MainViewModel
 
@@ -59,6 +71,7 @@ fun HomeScreen(navController: NavController) {
     val scope = rememberCoroutineScope() // To open/close the drawer
     var showLogoutDialog by remember { mutableStateOf(false) }
     val contentColor = Color.White
+    var isLoading by remember { mutableStateOf(false) } // Loading state
 
     val viewModel: GuardViewModel = hiltViewModel()
     val mainViewModel: MainViewModel = hiltViewModel()
@@ -86,126 +99,136 @@ fun HomeScreen(navController: NavController) {
     Log.d("Final", "NewApplication:${gguard.emp_id} ")
     val guardJson = gson.toJson(gguard)
     val encodedGuardJson = URLEncoder.encode(guardJson, StandardCharsets.UTF_8.toString())
-
+    // Handle Back Press
+    BackHandler {
+        showLogoutDialog = true // Show logout dialog instead of going back
+    }
     ModalNavigationDrawer(
         drawerContent = {
-            ModalDrawerSheet {
-                Text(
-                    text = "Logout (लॉगआउट)",
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .clickable { showLogoutDialog = true },
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        color = if (showLogoutDialog) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                    )
-                )
-
-                // Guard details section
-                Column(modifier = Modifier.padding(16.dp)) {
+            ModalDrawerSheet(modifier = Modifier.fillMaxWidth(0.8f)
+                .background(Color.White),
+                //drawerContainerColor = Color(0xFFBB86FC)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)
+                ) {
                     Text(
-                        text = "UserId: ${gguard.emp_id}",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = if (showLogoutDialog) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(8.dp)) // Space between details
-                    Row {
-                        Text(
-                            text = "Mobile: ",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = if (showLogoutDialog) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                            )
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = gguard.mobile_number,
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = if (showLogoutDialog) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                            )
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp)) // Space between details
-                    Text(
-                        text = "Circle: ${gguard.Circle_CG}",
-                        style = MaterialTheme.typography.bodyMedium.copy(
+                        text = "Logout",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp)
+                            .clickable { showLogoutDialog = true },
+                        style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = if (showLogoutDialog) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.error
                         )
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Division :${gguard.division} ",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = if (showLogoutDialog) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                        )
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "SubDivision :${gguard.subdivision} ",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = if (showLogoutDialog) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(8.dp)) // Space between details
-                    Row {
-                        Text(
-                            text = "Area: ",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = if (showLogoutDialog) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                            )
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "${gguard.range_} ${gguard.Circle1} ${gguard.beat}",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = if (showLogoutDialog) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                            )
-                        )
-                    }
-                }
 
+                    Divider()
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        InfoRow(label = "User ID", value = gguard.emp_id)
+                        InfoRow(label = "Mobile", value = gguard.mobile_number)
+                        InfoRow(label = "Circle", value = gguard.Circle_CG)
+                        InfoRow(label = "Division", value = gguard.division)
+                        InfoRow(label = "SubDivision", value = gguard.subdivision)
+                        InfoRow(label = "Range", value = gguard.range_)
+                        InfoRow(label = "Circle 1", value = gguard.Circle1)
+                        InfoRow(label = "Beat", value = gguard.beat.toString())
+
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+                    TokenCountdownDisplay(context = context)
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = {
+                            isLoading = true
+                            viewModel.refreshToken { response, error ->
+                                isLoading = false
+                                if (response != null) {
+                                    Toast.makeText(context, response.message, Toast.LENGTH_SHORT).show()
+                                    gguard = response.employee!!
+                                    response.token?.let { SecureStorage.saveToken(context, it) }
+                                } else {
+                                    Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("Re-Authenticate Employee", fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Contact Us Button
+                    ElevatedButton(
+                        onClick = {  navController.navigate(NavigationScreens.ContactUs.name)},
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.elevatedButtonColors(containerColor = Color(0xFF1976D2))
+                    ) {
+                        Icon(imageVector = Icons.Default.Phone, contentDescription = "Contact Us", tint = Color.White)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Contact Us", fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // About Us Button
+                    ElevatedButton(
+                        onClick = { navController.navigate(NavigationScreens.AboutUs.name) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.elevatedButtonColors(containerColor = Color(0xFF43A047))
+                    ) {
+                        Icon(imageVector = Icons.Default.Info, contentDescription = "About Us", tint = Color.White)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("About Us", fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+
+                    Spacer(modifier = Modifier.height(90.dp))
+
+
+                }
                 if (showLogoutDialog) {
                     AlertDialog(
                         onDismissRequest = { showLogoutDialog = false },
                         title = {
-                            Text(
-                                text = "Logout (लॉगआउट)",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp
-                            )
+                            Text(text = "Logout", fontWeight = FontWeight.Bold, fontSize = 20.sp)
                         },
                         text = {
-                            Text(
-                                "Are you sure you want to logout? (क्या आप सुनिश्चित हैं कि आप लॉगआउट करना चाहते हैं?)",
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            )
+                            Text("Are you sure you want to logout?", textAlign = TextAlign.Center)
                         },
                         confirmButton = {
                             TextButton(
                                 onClick = {
                                     showLogoutDialog = false
-                                    SignOut(navController)
                                     clearLoginStatus(context = context)
-                                    mainViewModel.deleteEmp(emp=gguard)
+                                    SecureStorage.clearToken(context)
+                                    mainViewModel.deleteEmp(emp = gguard)
+                                    navController.navigate(NavigationScreens.LoginScreen.name) {
+                                        popUpTo(NavigationScreens.AppHome.name) { inclusive = true }
+                                    }
                                 }
                             ) {
-                                Text("Yes, Logout (हां, लॉगआउट करें)")
+                                Text("Yes, Logout", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
                             }
                         },
                         dismissButton = {
                             TextButton(onClick = { showLogoutDialog = false }) {
-                                Text("Cancel (रद्द करें)")
+                                Text("Cancel")
                             }
                         }
                     )
                 }
+
             }
         },
         drawerState = drawerState // Attach the DrawerState here
     ) {
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -216,15 +239,18 @@ fun HomeScreen(navController: NavController) {
             // TopAppBarOP with hamburger menu
             TopAppBarOP(
                 navController = navController,
-                greetings = "Welcome (स्वागत है)",
+                greetings = "Welcome ${gguard.Name}",
                 onMenuClick = { // Open the drawer on menu click
                     scope.launch {
                         drawerState.open() // Open the drawer
                     }
                 }
             )
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(32.dp))
+            TokenCountdownDisplay(context)
+
+
 
             // Center the buttons vertically
             Column(
@@ -232,12 +258,15 @@ fun HomeScreen(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+
+
                 Button(
                     onClick = { navController.navigate(NavigationScreens.NewApplicationScreen.name+"/$encodedGuardJson")/* Navigate to Submit New Application Screen */ },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(Color(0xFF4379FF))
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    colors = ButtonDefaults.buttonColors(Color(0xFF0A66C2))
                 ) {
-                    Text(text = "Submit New Application (नई आवेदन प्रस्तुत करें)", color = Color.White)
+                    Text(text = "Submit New Application ", color = Color.White)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -245,8 +274,8 @@ fun HomeScreen(navController: NavController) {
 
                 Button(
                     onClick = { navController.navigate(NavigationScreens.ComplaintApplicationGuard.name+"/$encodedGuardJson")/* Navigate to Submit New Application Screen */ },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(Color(0xFF4379FF))
+                    modifier = Modifier.fillMaxWidth() .padding(horizontal = 16.dp),
+                    colors = ButtonDefaults.buttonColors(Color(0xFF0A66C2))
                 ) {
                     Text(text = "Complaint Applications", color = Color.White)
                 }
@@ -255,23 +284,41 @@ fun HomeScreen(navController: NavController) {
 
                 Button(
                     onClick = { navController.navigate(NavigationScreens.DraftApplicationScreen.name+"/$encodedGuardJson")/* Navigate to Draft Applications Screen */ },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(Color(0xFF4379FF))
+                    modifier = Modifier.fillMaxWidth() .padding(horizontal = 16.dp),
+                    colors = ButtonDefaults.buttonColors(Color(0xFF0A66C2))
                 ) {
-                    Text(text = "Draft Applications (मसौदा आवेदन)", color = Color.White)
+                    Text(text = "Draft Applications", color = Color.White)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
                     onClick = { navController.navigate(NavigationScreens.PrevApplicationScreen.name+"/$encodedGuardJson")/* Navigate to Previous Applications Screen */ },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(Color(0xFF5D8BFF))
+                    modifier = Modifier.fillMaxWidth() .padding(horizontal = 16.dp),
+                    colors = ButtonDefaults.buttonColors(Color(0xFF0A66C2))
                 ) {
-                    Text(text = "Previous Applications (पिछले आवेदन)", color = Color.White)
+                    Text(text = "Previous Applications", color = Color.White)
                 }
             }
         }
     }
 }
 
+@Composable
+fun InfoRow(label: String, value: String) {
+    Column(modifier = Modifier.padding(vertical = 4.dp)) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        )
+    }
+}

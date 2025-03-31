@@ -34,6 +34,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,6 +66,9 @@ import com.example.compensation_app.components.SectionTitle
 import com.example.compensation_app.components.getCurrentTimestamp
 import com.example.compensation_app.sqlite.MainViewModel
 import com.example.compensation_app.viewmodel.GuardViewModel
+import com.example.landareacalculator.ControlButtons
+import com.example.landareacalculator.LandAreaTracker
+import com.example.landareacalculator.MapScreen
 import com.google.gson.Gson
 
 
@@ -76,15 +80,8 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
     val fform = draftForm.let {
         gson.fromJson(it, FormData::class.java)
     }
-    var pdfUri = remember { mutableStateOf<Uri?>(null) }
 
-    var photoUri by remember { mutableStateOf<Uri?>(null) }
-    var eSignUri by remember { mutableStateOf<Uri?>(null) }
-
-    var incident1 by remember { mutableStateOf<Uri?>(null) }
-    var incident2 by remember { mutableStateOf<Uri?>(null) }
-    var incident3 by remember { mutableStateOf<Uri?>(null) }
-    var incident4 by remember { mutableStateOf<Uri?>(null) }
+    val context= LocalContext.current
 
     LaunchedEffect (draftForm){
 
@@ -99,6 +96,9 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
     // Data class instance to hold form data.visibility = View.GONE
     val viewModel: GuardViewModel = hiltViewModel()
     val mainViewModel: MainViewModel = hiltViewModel()
+
+
+
     if(gguard!=null){
         Log.d("Final 111", "NewApplication:${gguard.emp_id} ")
         //Log.d("User", "NewApplication: $mobileNumber")
@@ -110,10 +110,39 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
         var humanDeathChecked by remember { mutableStateOf(false) }
         var humanInjuryChecked by remember { mutableStateOf(false) }
         var showToast by remember { mutableStateOf<String?>(null) }
+        var pdfUri by remember { mutableStateOf<Uri?>(null) }
+        var nocReport by remember { mutableStateOf<Uri?>(null) }
+        var landOwnershipReport by remember { mutableStateOf<Uri?>(null) }
+        var rorReport by remember { mutableStateOf<Uri?>(null) }
+        var propertyOwnerReport by remember { mutableStateOf<Uri?>(null) }
+        var vasCertificate by remember { mutableStateOf<Uri?>(null) }
+        var deathCertificate by remember { mutableStateOf<Uri?>(null) }
+        var sarpanchReport by remember { mutableStateOf<Uri?>(null) }
+        var pmReport by remember { mutableStateOf<Uri?>(null) }
+        var medicalCertificate by remember { mutableStateOf<Uri?>(null) }
+
+
+
+
+        var photoUri by remember { mutableStateOf<Uri?>(null) }
+        var eSignUri by remember { mutableStateOf<Uri?>(null) }
+        var cropDamagePhoto by remember { mutableStateOf<Uri?>(null) }
+        var housedamagePhoto1 by remember { mutableStateOf<Uri?>(null) }
+        var housedamagePhoto2 by remember { mutableStateOf<Uri?>(null) }
+        var cattlePhoto by remember { mutableStateOf<Uri?>(null) }
+        var humanPhoto1 by remember { mutableStateOf<Uri?>(null) }
+        var humanPhoto2 by remember { mutableStateOf<Uri?>(null) }
+        var humanInjuryPhoto by remember { mutableStateOf<Uri?>(null) }
 
 
         val pdfSizeError = remember { mutableStateOf<String?>(null) }
         val context= LocalContext.current
+
+        var area by remember {
+            mutableStateOf(0.0)
+        }
+        val landAreaTracker = remember { LandAreaTracker(context) }
+        val points by landAreaTracker.locationList.collectAsState()
 
         LaunchedEffect(showToast) {
             showToast?.let {
@@ -201,6 +230,13 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                         onValueChange = { if (it.length <= 10) formData = formData.copy(mobile = it) },
                         keyboardType = KeyboardType.Number
                     )
+
+                    InputField(
+                        label = "Email",
+                        value = formData.email,
+                        onValueChange = { formData = formData.copy(email = it) },
+                        keyboardType = KeyboardType.Text
+                    )
                     SectionTitle("Damage Details (नुकसान विवरण)")
 
                     // Dropdown for Animal List
@@ -262,20 +298,56 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                             value = formData.cerealCrop,
                             onValueChange = { formData = formData.copy(cerealCrop = it) },
                             keyboardType = KeyboardType.Text
+
                         )
+                        MapScreen(points) // <-- Now using MapScreen to show the map
+                        ControlButtons(landAreaTracker) { calculatedArea ->
+                            Log.d("CalculatedArea", "Area: $calculatedArea square meters")
+                            area=calculatedArea
+                        }
+                        val areaInAcres = String.format("%.3f", area / 4046.86)
+                        formData.cropDamageAmount=(area/4046.86)*9000
+
+                        formData.cropDamageArea= areaInAcres
+                        SectionTitle(title = "Area in sq-m")
                         InputField(
                             label = "Crop Damage Area (फसल नुकसान क्षेत्र)",
                             value = formData.cropDamageArea,
-                            onValueChange = { formData = formData.copy(cropDamageArea = it) },
-                            keyboardType = KeyboardType.Decimal
+                            onValueChange = {}, // No effect when user types
+                            keyboardType = KeyboardType.Decimal,
+                            enabled = false // Disables user input
                         )
+                        SectionTitle(title = "Amount in Rs.")
+
                         InputField(
                             label = "Crop Damage Amount",
                             value = formData.cropDamageAmount.toString(),
                             onValueChange = { formData = formData.copy(cropDamageAmount = it.toDouble()) },
-                            keyboardType = KeyboardType.Decimal
+                            keyboardType = KeyboardType.Decimal,
+                            enabled = false
                         )
+                        ImagePickerButton("Select Crop Photo") { uri -> cropDamagePhoto = uri }
+                        cropDamagePhoto?.let { Text("Selected: $it", fontSize = 14.sp) }
 
+                        SelectPdfButton ("NOC REPORT"){ uri->
+                            nocReport= uri
+
+                        }
+                        SelectPdfButton("Land Ownership Report") { uri->
+                            landOwnershipReport= uri
+
+                        }
+                        SelectPdfButton("ROR report") { uri->
+                            rorReport= uri
+
+                        }
+
+                    }
+                    else{
+                        formData.cropType=""
+                        formData.cerealCrop=""
+                        formData.cropDamageAmount= 0.0
+                        formData.cropDamageArea=""
                     }
                     SectionTitle("House Damage (घर का नुकसान)")
                     Row(
@@ -302,45 +374,75 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                             onValueChange = { formData = formData.copy(partialHousesDamaged = it) },
                             keyboardType = KeyboardType.Text
                         )
+                        ImagePickerButton("Select damage photo 1") { uri -> housedamagePhoto1 = uri }
+                        housedamagePhoto1?.let { Text("Selected: $it", fontSize = 14.sp) }
+
+                        ImagePickerButton("Select damage photo 2") { uri -> housedamagePhoto2 = uri }
+                        housedamagePhoto2?.let { Text("Selected: $it", fontSize = 14.sp) }
+
+                        SelectPdfButton ("Propert Ownership "){ uri->
+
+                            propertyOwnerReport= uri
+
+                        }
                         InputField(
                             label = "House Damage Amount",
                             value = formData.houseDamageAmount.toString(),
                             onValueChange = { formData = formData.copy(houseDamageAmount = it.toDouble()) },
                             keyboardType = KeyboardType.Decimal
                         )
-                        SectionTitle("Cattle Injury (पशु चोट)")
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Checkbox(
-                                checked = cattleInjuryChecked,
-                                onCheckedChange = { cattleInjuryChecked = it })
-                            Text(
-                                "Cattle Injury Details Required (पशु चोट विवरण आवश्यक है)",
-                                modifier = Modifier.padding(start = 8.dp)
-                            )
-                        }
-                        if (cattleInjuryChecked) {
-                            InputField(
-                                label = "Number of Individuals (व्यक्तियों की संख्या)",
-                                value = formData.cattleInjuryNumber,
-                                onValueChange = { formData = formData.copy(cattleInjuryNumber = it) },
-                                keyboardType = KeyboardType.Number
-                            )
-                            InputField(
-                                label = "Estimated Age (अनुमानित आयु)",
-                                value = formData.cattleInjuryEstimatedAge,
-                                onValueChange = { formData = formData.copy(cattleInjuryEstimatedAge = it) },
-                                keyboardType = KeyboardType.Number
-                            )
-                            InputField(
-                                label = "Cattle Injury Amount",
-                                value = formData.catleInjuryAmount.toString(),
-                                onValueChange = { formData = formData.copy(catleInjuryAmount = it.toDouble()) },
-                                keyboardType = KeyboardType.Decimal
-                            )
+
+
+                    }
+                    else{
+                        formData.fullHousesDamaged=""
+                        formData.partialHousesDamaged=""
+                        formData.houseDamageAmount= 0.0
+                    }
+                    SectionTitle("Cattle Injury (पशु चोट)")
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = cattleInjuryChecked,
+                            onCheckedChange = { cattleInjuryChecked = it })
+                        Text(
+                            "Cattle Injury Details Required (पशु चोट विवरण आवश्यक है)",
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
+                    if (cattleInjuryChecked) {
+                        InputField(
+                            label = "Number of Individuals (व्यक्तियों की संख्या)",
+                            value = formData.cattleInjuryNumber,
+                            onValueChange = { formData = formData.copy(cattleInjuryNumber = it) },
+                            keyboardType = KeyboardType.Number
+                        )
+                        InputField(
+                            label = "Estimated Age (अनुमानित आयु)",
+                            value = formData.cattleInjuryEstimatedAge,
+                            onValueChange = { formData = formData.copy(cattleInjuryEstimatedAge = it) },
+                            keyboardType = KeyboardType.Number
+                        )
+                        InputField(
+                            label = "Cattle Injury Amount",
+                            value = formData.catleInjuryAmount.toString(),
+                            onValueChange = { formData = formData.copy(catleInjuryAmount = it.toDouble()) },
+                            keyboardType = KeyboardType.Decimal
+                        )
+                        ImagePickerButton("Select Cattle photo 1") { uri -> cattlePhoto = uri }
+                        cattlePhoto?.let { Text("Selected: $it", fontSize = 14.sp) }
+
+                        SelectPdfButton("Vas Certificate") { uri->
+                            vasCertificate= uri
 
                         }
+
+                    }
+                    else{
+                        formData.cattleInjuryNumber=""
+                        formData.cattleInjuryEstimatedAge=""
+                        formData.catleInjuryAmount= 0.0
                     }
                     SectionTitle("Human Death (मानव मृत्यु)")
                     Row(
@@ -367,7 +469,30 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                             onValueChange = { formData = formData.copy(humanDeathNumber = it) },
                             keyboardType = KeyboardType.Number
                         )
+                        ImagePickerButton("Select Human death photo 1") { uri -> humanPhoto1 = uri }
+                        humanPhoto1?.let { Text("Selected: $it", fontSize = 14.sp) }
 
+                        ImagePickerButton("Select Human death photo 2") { uri -> humanPhoto2 = uri }
+                        humanPhoto2?.let { Text("Selected: $it", fontSize = 14.sp) }
+
+                        SelectPdfButton("deathCertificate") { uri->
+                            deathCertificate= uri
+
+                        }
+                        SelectPdfButton ("sarpanchReport"){ uri->
+                            sarpanchReport= uri
+
+                        }
+                        SelectPdfButton("pmReport") { uri->
+                            pmReport= uri
+
+                        }
+
+
+                    }
+                    else{
+                        formData.humanDeathVictimNames=""
+                        formData.humanDeathNumber=""
                     }
                     SectionTitle("Human Injury (मानव चोट)")
                     Row(
@@ -400,6 +525,18 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                             onValueChange = { formData = formData.copy(humanInjuryAmount = it.toDouble()) },
                             keyboardType = KeyboardType.Decimal
                         )
+
+                        ImagePickerButton("Select Human injury photo 1") { uri -> humanInjuryPhoto = uri }
+                        humanInjuryPhoto?.let { Text("Selected: $it", fontSize = 14.sp) }
+
+                        SelectPdfButton ("medicalCertificate"){ uri->
+                            medicalCertificate= uri
+                        }
+                    }
+                    else{
+                        formData.temporaryInjuryDetails=""
+                        formData.permanentInjuryDetails=""
+                        formData.humanInjuryAmount=0.0
                     }
                     SectionTitle("Bank Details (बैंक विवरण)")
                     InputField(
@@ -445,18 +582,6 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                         onValueChange = { if (it.length <= 12) formData = formData.copy(adhar = it) },
                         keyboardType = KeyboardType.Number
                     )
-                    SectionTitle("Upload Documents (दस्तावेज)")
-                    Text(
-                        text = "Verify to upload all documents in a single file (Aadhar, PAN, Passport Photo, Signature, Incident Photos - 3)\n" +
-                                "सभी दस्तावेज़ों को एक फ़ाइल में अपलोड करने के लिए सत्यापित करें (आधार, पैन, पासपोर्ट फोटो, हस्ताक्षर, घटना की तस्वीरें - 3)",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Red,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    RequiredDocumentsTable()
-
-                    SectionTitle("Upload Photos")
 
                     Column(
                         modifier = Modifier.fillMaxWidth(),
@@ -472,23 +597,10 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        ImagePickerButton("Select Incident Photo 1") { uri -> incident1 = uri }
-                        incident1?.let { Text("Selected: $it", fontSize = 14.sp) }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        ImagePickerButton("Select Incident Photo 2") { uri -> incident2 = uri }
-                        incident2?.let { Text("Selected: $it", fontSize = 14.sp) }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        ImagePickerButton("Select Incident Photo 3") { uri -> incident3 = uri }
-                        incident3?.let { Text("Selected: $it", fontSize = 14.sp) }
 
 
-                        SelectPdfButton { uri, error ->
-                            pdfUri.value= uri
-                            pdfSizeError.value = error
+                        SelectPdfButton("Identity Proof") { uri->
+                            pdfUri= uri
                         }
 //                        Text("Selected: $pdfUri", fontSize = 14.sp, color = Color.Green)
 
@@ -500,7 +612,7 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
 
 
                     // Show file details or error
-                    FileDetails(pdfUri = pdfUri, pdfSizeError = pdfSizeError)
+                    // FileDetails(pdfUri = pdfUri)
                     Spacer(modifier = Modifier.height(20.dp))
                     Button(
                         onClick = {
@@ -532,37 +644,63 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                                             applicantMobile = formData.mobile,
                                             photoUri = photoUri,
                                             eSignUri = eSignUri,
-                                            pdfUri = pdfUri.value,
-                                            incident1 = incident1,
-                                            incident2 = incident2,
-                                            incident3 = incident3
+                                            idProof = pdfUri, // Renamed from documentURL
+                                            cropdamagePhoto = cropDamagePhoto,
+                                            nocReport = nocReport,
+                                            landOwnershipReport = landOwnershipReport,
+                                            rorReport = rorReport,
+                                            housedamagePhoto1 = housedamagePhoto1,
+                                            housedamagePhoto2 = housedamagePhoto2,
+                                            propertyOwnerReport = propertyOwnerReport,
+                                            cattlePhoto = cattlePhoto,
+                                            vasCertificate = vasCertificate,
+                                            humanPhoto1 = humanPhoto1,
+                                            humanPhoto2 = humanPhoto2,
+                                            deathCertificate = deathCertificate,
+                                            sarpanchReport = sarpanchReport,
+                                            pmReport = pmReport,
+                                            humanInjuryPhoto = humanInjuryPhoto,
+                                            medicalCertificate = medicalCertificate
                                         ) { uploadedUrls ->
 
                                             // ✅ Store uploaded URLs in formData
-                                            formData.documentURL = uploadedUrls["document.pdf"] ?: ""
+                                            formData.idProof = uploadedUrls["idProof.pdf"] ?: ""
 
                                             formData.photoUrl = uploadedUrls["photo.jpg"] ?: ""
                                             formData.eSignUrl = uploadedUrls["esign.jpg"] ?: ""
-                                            formData.incidentUrl1 = uploadedUrls["incident1.jpg"] ?: ""
-                                            formData.incidentUrl2 = uploadedUrls["incident2.jpg"] ?: ""
-                                            formData.incidentUrl3 = uploadedUrls["incident3.jpg"] ?: ""
+                                            formData.cropdamagePhoto = uploadedUrls["cropDamagePhoto.jpg"] ?: ""
+                                            formData.nocReport = uploadedUrls["nocReport.pdf"] ?: ""
+                                            formData.landOwnershipReport = uploadedUrls["landOwnershipReport.pdf"] ?: ""
+                                            formData.rorReport = uploadedUrls["rorReport.pdf"] ?: ""
+                                            formData.housedamagePhoto1 = uploadedUrls["housedamagePhoto1.jpg"] ?: ""
+                                            formData.housedamagePhoto2 = uploadedUrls["housedamagePhoto2.jpg"] ?: ""
+                                            formData.propertyOwnerReport = uploadedUrls["propertyOwnerReport.pdf"] ?: ""
+                                            formData.cattlePhoto = uploadedUrls["cattlePhoto.jpg"] ?: ""
+                                            formData.vasCertificate  = uploadedUrls["vasCertificate.pdf"] ?: ""
+                                            formData.humanPhoto1  = uploadedUrls["humanPhoto1.jpg"] ?: ""
+                                            formData.humanPhoto2  = uploadedUrls["humanPhoto2.jpg"] ?: ""
+                                            formData.deathCertificate  = uploadedUrls["deathCertificate.pdf"] ?: ""
+                                            formData.sarpanchReport  = uploadedUrls["sarpanchReport.pdf"] ?: ""
+                                            formData.pmReport   = uploadedUrls["pmReport.pdf"] ?: ""
+                                            formData.humanInjuryPhoto   = uploadedUrls["humanInjuryPhoto.jpg"] ?: ""
+                                            formData.medicalCertificate   = uploadedUrls["medicalCertificate.pdf"] ?: ""
+
 
                                             Log.d("photoUrl", "NewApplication: ${formData.photoUrl}")
                                             Log.d("sign", "NewApplication: ${formData.eSignUrl}")
 
-                                            Log.d("pdf", "NewApplication: ${formData.documentURL}")
-
-
+                                            Log.d("pdf", "NewApplication: ${formData.idProof}")
                                             // ✅ Proceed only if required files are uploaded
-                                            if (formData.documentURL.isNotEmpty() && formData.photoUrl.isNotEmpty() && formData.eSignUrl.isNotEmpty()) {
+                                            if (formData.idProof.isNotEmpty() && formData.photoUrl.isNotEmpty() && formData.eSignUrl.isNotEmpty()) {
 
                                                 val form = CompensationForm(
                                                     forestGuardID = gguard.emp_id,
-                                                    complaint_id = formData.complaint_id,
+                                                    complaint_id = null,
                                                     applicantName = formData.name,
                                                     age = formData.age.toInt(),
                                                     fatherSpouseName = formData.fatherOrSpouseName,
                                                     mobile = formData.mobile,
+                                                    email = formData.email,
                                                     animalName = formData.animalList,
                                                     incidentDate = formData.damageDate,
                                                     additionalDetails = formData.additionalDetails,
@@ -606,12 +744,26 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                                                             updatedBy = gguard.emp_id
                                                         )
                                                     ),
-                                                    documentURL = formData.documentURL,
+                                                    idProof = formData.idProof,
                                                     photoUrl = formData.photoUrl, // ✅ Add uploaded URLs
                                                     eSignUrl = formData.eSignUrl,
-                                                    incidentUrl1 = formData.incidentUrl1,
-                                                    incidentUrl2 = formData.incidentUrl2,
-                                                    incidentUrl3 = formData.incidentUrl3,
+                                                    cropdamagePhoto  = formData.cropdamagePhoto ,
+                                                    nocReport  = formData.nocReport ,
+
+                                                    landOwnershipReport  = formData.landOwnershipReport ,
+                                                    rorReport  = formData.rorReport ,
+                                                    housedamagePhoto1  = formData.housedamagePhoto1 ,
+                                                    housedamagePhoto2  = formData.housedamagePhoto2 ,
+                                                    propertyOwnerReport  = formData.propertyOwnerReport ,
+                                                    cattlePhoto  = formData.cattlePhoto ,
+                                                    vasCertificate  = formData.vasCertificate ,
+                                                    humanPhoto1 = formData.humanPhoto1,
+                                                    humanPhoto2 = formData.humanPhoto2,
+                                                    deathCertificate = formData.deathCertificate,
+                                                    sarpanchReport = formData.sarpanchReport,
+                                                    pmReport = formData.pmReport,
+                                                    humanInjuryPhoto = formData.humanInjuryPhoto,
+                                                    medicalCertificate = formData.medicalCertificate,
                                                     status = "2",
                                                     verifiedBy = "Pending",
                                                     paymentProcessedBy = "Pending",
@@ -626,17 +778,20 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                                                 if (validate(form)) {
                                                     Log.d("validity", "NewApplication: Valid hai")
 
+
                                                     viewModel.newApplicationForm(form = form) { success, status ->
                                                         isUploading = false  // ✅ Hide loading when done
 
                                                         if (success) {
                                                             showToast = "Form submitted successfully!"
                                                             navController.popBackStack()
-
                                                         } else {
                                                             showToast = "Error: $status"
+                                                            Log.d("error", "NewApplication: $status")
                                                         }
                                                     }
+
+
                                                 } else {
                                                     showToast = "Please Check all fields (कृपया सभी फ़ील्ड्स की जांच करें)"
                                                     isUploading = false

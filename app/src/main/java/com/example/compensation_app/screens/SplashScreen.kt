@@ -40,6 +40,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.Navigation.NavigationScreens
+import com.example.compensation_app.Navigation.clearLoginStatus
 import com.example.compensation_app.sqlite.MainViewModel
 
 import com.google.firebase.auth.FirebaseAuth
@@ -101,6 +102,11 @@ fun SplashScreen(navController: NavController) {
                 navController.navigate(NavigationScreens.DeputyHomeScreen.name) {
                     popUpTo(NavigationScreens.AppHome.name) { inclusive = true }
                 }
+            }
+            else{
+                clearLoginStatus(context)
+                navController.navigate(NavigationScreens.AppHome.name)
+
             }
             // Navigate to the HomeScreen if user is logged in
 

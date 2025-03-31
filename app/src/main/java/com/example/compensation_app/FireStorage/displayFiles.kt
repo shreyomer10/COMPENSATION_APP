@@ -93,29 +93,55 @@ fun openPdfExternally(context: Context, pdfUrl: String) {
     }
 }
 @Composable
-fun SelectPdfButton(onFileSelected: (Uri?, String?) -> Unit) {
+fun SelectPdfButton(
+    label: String,
+    onFileSelected: (Uri?) -> Unit // No need for a global error message
+) {
     val context = LocalContext.current
+    var selectedFile by remember { mutableStateOf<Uri?>(null) }
+    var error by remember { mutableStateOf<String?>(null) }
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
             val fileSize = context.contentResolver.openFileDescriptor(uri, "r")?.statSize ?: -1
-            if (fileSize > 2 * 1024 * 1024) { // Check if file size > 2MB
-                onFileSelected(null, "File size exceeds 2MB.")
+            if (fileSize > 500 * 1024) { // Check if file size > 500 KB
+                error = "$label exceeds 500 KB."
+                selectedFile = null
             } else {
-                onFileSelected(uri, null) // Return URI to UI
+                error = null
+                selectedFile = uri
+                onFileSelected(uri) // Return URI if valid
             }
         } else {
-            onFileSelected(null, "No file selected.")
+            error = "$label not selected."
+            selectedFile = null
         }
     }
 
-    Button(onClick = { launcher.launch("application/pdf") }) {
-        Icon(imageVector = Icons.Default.Info, contentDescription = "Upload PDF")
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = "Choose File (फ़ाइल चुनें)")
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Button(
+            onClick = { launcher.launch("application/pdf") },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(imageVector = Icons.Default.Info, contentDescription = "Upload PDF")
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = label)
+        }
+
+        if (error != null) {
+            Text(text = error!!, color = Color.Red, fontSize = 14.sp)
+        } else if (selectedFile != null) {
+            Text(
+                text = "Selected file: ${selectedFile!!.lastPathSegment}",
+                fontSize = 14.sp,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
     }
 }
+
 @Composable
 fun ImageRow(label: String, imageUrl: String) {
     var showFullScreen by remember { mutableStateOf(false) } // State to control full-screen image
@@ -168,20 +194,11 @@ fun ImageRow(label: String, imageUrl: String) {
 
 
 @Composable
-fun FileDetails(pdfUri: State<Uri?>, pdfSizeError: State<String?>) {
-    pdfUri.value?.let {
+fun FileDetails(pdfUri: Uri?) {
+    pdfUri?.let {
         Text(
             text = "Selected file: ${it.path}",
             fontSize = 14.sp,
-            modifier = Modifier.padding(top = 8.dp)
-        )
-    }
-
-    pdfSizeError.value?.let {
-        Text(
-            text = it,
-            color = Color.Red,
-            fontSize = 12.sp,
             modifier = Modifier.padding(top = 8.dp)
         )
     }

@@ -7,12 +7,15 @@ import com.example.compensation_app.Backend.ApiResponse
 import com.example.compensation_app.Backend.CompensationForm
 import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.Backend.GuardRepository
+import com.example.compensation_app.Backend.LoginRequest
+import com.example.compensation_app.Backend.LoginResponse
 import com.example.compensation_app.Backend.RejectComplaintRequest
 import com.example.compensation_app.Backend.RetrivalForm
 import com.example.compensation_app.Backend.UpdateFormStatusResponse
 import com.example.compensation_app.Backend.UserComplaintForm
 import com.example.compensation_app.Backend.UserComplaintRetrievalForm
 import com.example.compensation_app.Backend.VerifyGuardRequest
+import com.example.compensation_app.Backend.VerifyGuardResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -23,6 +26,40 @@ import javax.inject.Inject
 class GuardViewModel @Inject constructor(
     private val guardRepository: GuardRepository // Inject the repository
 ) : ViewModel() {
+
+    fun register(empId: String,mobileNumber: String,roll: String,password:String,onResult: (ApiResponse?, String?) -> Unit) {
+        val empRequest=LoginRequest(emp_id = empId,
+            mobile_number = mobileNumber,
+            roll=roll,
+            password = password)
+        viewModelScope.launch(Dispatchers.IO) {
+            guardRepository.register(empRequest, onResult)
+        }
+    }
+    fun login(empId: String,mobileNumber: String,roll: String,password:String, onResult: (LoginResponse?, String?) -> Unit) {
+        val empRequest=LoginRequest(emp_id = empId,
+            mobile_number = mobileNumber,
+            roll=roll,
+            password = password)
+        viewModelScope.launch(Dispatchers.IO) {
+            guardRepository.login(empRequest, onResult)
+        }
+    }
+    fun refreshToken( onResult: (LoginResponse?, String?) -> Unit) {
+
+        viewModelScope.launch(Dispatchers.IO) {
+            guardRepository.refreshToken(onResult)
+        }
+    }
+    fun updatePass(empId: String,mobileNumber: String,roll: String,password:String,onResult: (ApiResponse?, String?) -> Unit) {
+        val empRequest=LoginRequest(emp_id = empId,
+            mobile_number = mobileNumber,
+            roll=roll,
+            password = password)
+        viewModelScope.launch(Dispatchers.IO) {
+            guardRepository.updatePass(empRequest, onResult)
+        }
+    }
 
     // Function to fetch guards from the repository
     fun getGuards(onResult: (List<emp>?, String?) -> Unit) {
@@ -37,10 +74,9 @@ class GuardViewModel @Inject constructor(
             guardRepository.addGuard(emp, onResult)
         }
     }
-    fun verifyGuard(empId: String, mobileNumber: String, roll :String,onResult: (String, emp?) -> Unit) {
-        val request = VerifyGuardRequest(emp_id = empId, mobile_number = mobileNumber,roll=roll)
+    fun verifyGuard(verifyGuardRequest: VerifyGuardRequest, onResult: (VerifyGuardResponse?, String?) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
-            guardRepository.verifyGuard(request, onResult)
+            guardRepository.verifyGuard(verifyGuardRequest, onResult)
         }
     }
 
@@ -107,6 +143,21 @@ class GuardViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             guardRepository.updateFormStatus(formId, empId, action, comments) { result ->
                 onResult(result)  // Directly returning the result
+            }
+        }
+    }
+    fun sendEmail(
+        email: String,
+        message: String,
+        onResult: (Result<Boolean>) -> Unit
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            guardRepository.sendEmail(email, message) { success, error ->
+                if (success) {
+                    onResult(Result.success(true))
+                } else {
+                    onResult(Result.failure(Exception(error)))
+                }
             }
         }
     }

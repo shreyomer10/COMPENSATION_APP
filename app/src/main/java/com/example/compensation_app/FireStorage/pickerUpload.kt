@@ -56,10 +56,26 @@ fun uploadFormFiles(
     applicantMobile: String, // Mobile number of the applicant
     photoUri: Uri?,
     eSignUri: Uri?,
-    pdfUri: Uri?,
-    incident1: Uri?,
-    incident2: Uri?,
-    incident3: Uri?,
+    idProof: Uri?,
+    cropdamagePhoto: Uri?,
+    nocReport: Uri?,
+    landOwnershipReport: Uri?,
+    rorReport: Uri?,
+    housedamagePhoto1: Uri?,
+    housedamagePhoto2: Uri?,
+    propertyOwnerReport: Uri?,
+
+    cattlePhoto: Uri?,
+    vasCertificate: Uri?,
+    humanPhoto1: Uri?,
+    humanPhoto2: Uri?,
+    deathCertificate: Uri?,
+    sarpanchReport: Uri?,
+    pmReport: Uri?,
+    humanInjuryPhoto: Uri?,
+    medicalCertificate: Uri?,
+
+
     onComplete: (Map<String, String>) -> Unit // Callback with uploaded URLs
 ) {
     val folderName = "${forestGuardId}_${applicantMobile}"  // Unique folder for each form
@@ -94,19 +110,70 @@ fun uploadFormFiles(
     }
 
     // **Mandatory Files (must be there)**
-    if (photoUri != null && eSignUri != null && pdfUri != null) {
+    if (photoUri != null && eSignUri != null && idProof != null) {
         uploadIfNotNull(photoUri, "photo.jpg")
         uploadIfNotNull(eSignUri, "esign.jpg")
-        uploadIfNotNull(pdfUri, "document.pdf")
+        uploadIfNotNull(idProof ,"idProof.pdf")
+        uploadIfNotNull(cropdamagePhoto, "cropDamagePhoto.jpg")
+        uploadIfNotNull(nocReport, "nocReport.pdf")
+        uploadIfNotNull(landOwnershipReport, "landOwnershipReport.pdf")
+        uploadIfNotNull(rorReport, "rorReport.pdf")
+        uploadIfNotNull(housedamagePhoto1, "housedamagePhoto1.jpg")
+        uploadIfNotNull(housedamagePhoto2, "housedamagePhoto2.jpg")
+        uploadIfNotNull(propertyOwnerReport, "document.pdf")
+        uploadIfNotNull(cattlePhoto, "cattlePhoto.jpg")
+        uploadIfNotNull(vasCertificate, "vasCertificate.pdf")
 
         // **Optional Incident Photos**
-        uploadIfNotNull(incident1, "incident1.jpg")
-        uploadIfNotNull(incident2, "incident2.jpg")
-        uploadIfNotNull(incident3, "incident3.jpg")
+        uploadIfNotNull(humanPhoto1, "humanPhoto1.jpg")
+        uploadIfNotNull(humanPhoto2, "humanPhoto2.jpg")
+        uploadIfNotNull(deathCertificate, "deathCertificate.pdf")
+        uploadIfNotNull(sarpanchReport, "sarpanchReport.pdf")
+        uploadIfNotNull(pmReport, "pmReport.pdf")
+        uploadIfNotNull(humanInjuryPhoto, "humanInjuryPhoto.jpg")
+        uploadIfNotNull(medicalCertificate, "medicalCertificate.pdf")
+
+
+
+
+
     } else {
         // 🔴 If any mandatory file is missing, do NOT upload
         onComplete(emptyMap())
     }
+}
+fun deleteFormFiles(forestGuardId: String, applicantMobile: String, onComplete: (Boolean) -> Unit) {
+    val folderPath = "forms/${forestGuardId}_${applicantMobile}"  // Folder where files are stored
+    val storageRef = FirebaseStorage.getInstance().reference.child(folderPath)
+
+    // List all files in the folder
+    storageRef.listAll()
+        .addOnSuccessListener { listResult ->
+            val totalFiles = listResult.items.size
+            var deletedFiles = 0
+
+            if (totalFiles == 0) {
+                onComplete(true) // Nothing to delete
+                return@addOnSuccessListener
+            }
+
+            // Delete each file
+            listResult.items.forEach { fileRef ->
+                fileRef.delete()
+                    .addOnSuccessListener {
+                        deletedFiles++
+                        if (deletedFiles == totalFiles) {
+                            onComplete(true)  // All files deleted
+                        }
+                    }
+                    .addOnFailureListener {
+                        onComplete(false) // Failed to delete some files
+                    }
+            }
+        }
+        .addOnFailureListener {
+            onComplete(false) // Failed to list folder contents
+        }
 }
 
 fun uploadComplaintFiles(

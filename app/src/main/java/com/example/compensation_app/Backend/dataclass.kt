@@ -19,11 +19,26 @@ data class emp(
     val range_: String,
     val beat: Int
 )
+data class LoginRequest(
+    val emp_id: String,
+    val roll: String,
+    val mobile_number: String,
+    val password: String
+)
+
+data class LoginResponse(
+    val message: String,
+    val token: String?,
+    val employee:emp?
+)
+
+
 
 data class VerifyGuardRequest(
     val emp_id: String,
     val mobile_number: String,
-    val roll:String
+    val roll:String,
+    val changePass:String
 )
 data class StatusUpdate(
     val status: String,
@@ -33,7 +48,7 @@ data class StatusUpdate(
 )
 data class VerifyGuardResponse(
     val message: String,
-    val employee: emp? // Use the Guard class to represent employee details if applicable
+   // val employee: emp? // Use the Guard class to represent employee details if applicable
 )
 
 data class RetrivalForm(
@@ -45,6 +60,7 @@ data class RetrivalForm(
     val age: Int?,
     val fatherSpouseName: String?,
     val mobile: String?,
+    var email:String?,
     val animalName: String?,
     val incidentDate: String?,
     val additionalDetails: String?,
@@ -59,18 +75,40 @@ data class RetrivalForm(
     val cerealCrop: String?,
     val cropDamageArea: Double?,
     var cropDamageAmount:Double?,
+
+    var cropdamagePhoto: String?,
+    var nocReport: String?,
+    var landOwnershipReport: String?,
+    var rorReport: String?,
+
     val fullHouseDamage: String?,
     val partialHouseDamage: String?,
     var houseDamageAmount:Double?,
+
+    var housedamagePhoto1: String?,
+    var housedamagePhoto2: String?,
+    var propertyOwnerReport: String?,
+
     val numberOfCattlesDied: Int?,
     val estimatedCattleAge: Int?,
     var catleInjuryAmount:Double?,
+    var cattlePhoto: String ?,
+    var vasCertificate: String?,
     val humanDeathVictimName: String?,
     val numberOfDeaths: Int?,
     val temporaryInjuryDetails: String?,
     val permanentInjuryDetails: String?,
     var humanDeathAmount:Double?,
+    var humanPhoto1: String ?,
+    var humanPhoto2: String ?,
+    var deathCertificate: String?,
+    var sarpanchReport: String?,
+    var pmReport: String?,
+
     var humanInjuryAmount:Double?,
+
+    var humanInjuryPhoto: String ?,
+    var medicalCertificate: String ?,
     val bankName: String?,
     val ifscCode: String?,
     val branchName: String?,
@@ -81,17 +119,22 @@ data class RetrivalForm(
     val totalCompensationAmount:Double?,
     val statusHistory: List<StatusUpdate>?,
     val status: String?,
-    var documentURL: String?,
+    var idProof: String?,
     var photoUrl:String?,
     var eSignUrl:String?,
-    var incidentUrl1:String?,
-    var incidentUrl2:String?,
-    var incidentUrl3:String?,
     val verifiedBy: String?,
     val paymentProcessedBy: String?,
     val comments: String?
 )
+data class EmailRequest(
+    val email: String,
+    val message: String
+)
 
+data class EmailResponse(
+    val success: Boolean,
+    val response: Any?
+)
 data class SubmissionComplaintResponse(
     val message: String,
     val complaint_id: Int
@@ -117,6 +160,7 @@ data class UserComplaintRetrievalForm(
     var age: String ?,
     var fatherOrSpouseName: String?,
     var mobile: String?,
+    var email:String?,
     var animalList: String?,
     var damageDate: String?,
     var additionalDetails: String?,
@@ -153,6 +197,7 @@ data class UserComplaintForm(
     var age: String = "1",
     var fatherOrSpouseName: String = "",
     var mobile: String = "",
+    var email:String="",
     var animalList: String = "",
     var damageDate: String = "",
     var additionalDetails: String = "",
@@ -200,6 +245,7 @@ fun validateComplaint(Form:UserComplaintForm): Boolean {
             Form.age.isNotEmpty() &&
             Form.fatherOrSpouseName.isNotEmpty() &&
             Form.mobile.isNotEmpty() &&
+            Form.email.isNotEmpty() &&
             Form.animalList.isNotEmpty() &&
             Form.damageDate.isNotEmpty() &&
             Form.address.isNotEmpty() &&
@@ -222,6 +268,8 @@ data class FormData(
     var age: String = "1",
     var fatherOrSpouseName: String = "",
     var mobile: String = "",
+    var email:String="",
+
     var animalList: String = "",
     var damageDate: String = "",
     var additionalDetails: String = "",
@@ -231,18 +279,41 @@ data class FormData(
     var cerealCrop: String = "",
     var cropDamageArea: String = "",
     var cropDamageAmount:Double = 0.0,
+
+    var cropdamagePhoto: String = "",
+    var nocReport: String = "",
+    var landOwnershipReport: String = "",
+    var rorReport: String = "",
+
     var fullHousesDamaged: String = "",
     var partialHousesDamaged: String = "",
     var houseDamageAmount:Double = 0.0,
+
+    var housedamagePhoto1: String = "",
+    var housedamagePhoto2: String = "",
+    var propertyOwnerReport: String = "",
+
 
     var cattleInjuryNumber: String = "",
     var cattleInjuryEstimatedAge: String = "",
     var catleInjuryAmount:Double = 0.0,
 
+    var cattlePhoto: String = "",
+    var vasCertificate: String = "",
+
     var humanDeathVictimNames: String = "",
     var humanDeathNumber: String = "",
     var humanDeathAmount:Double = 0.0,
-    var humanInjuryAmount:Double = 0.0,
+    var humanPhoto1: String = "",
+    var humanPhoto2: String = "",
+    var deathCertificate: String = "",
+    var sarpanchReport: String = "",
+    var pmReport: String = "",
+
+
+    var humanInjuryAmount: Double = 0.0,
+    var humanInjuryPhoto: String = "",
+    var medicalCertificate: String = "",
 
     var temporaryInjuryDetails: String = "",
     var permanentInjuryDetails: String = "",
@@ -253,90 +324,11 @@ data class FormData(
     var bankAccountNumber: String = "",
     var pan: String = "",
     var adhar: String = "",
-    var documentURL: String = "",
+    var idProof: String = "",
     var photoUrl:String="",
     var eSignUrl:String="",
-    var incidentUrl1:String="",
-    var incidentUrl2:String="",
-    var incidentUrl3:String="",
+)
 
-
-    ) {
-    companion object {
-        val Saver: Saver<FormData, Any> = object : Saver<FormData, Any> {
-            override fun restore(value: Any): FormData {
-                val list = value as List<String>
-                return FormData(
-                    id = list[0].toIntOrNull() ?: 0,
-                    forestGuardID = list[1],
-                    name = list[2],
-                    age = list[3],
-                    fatherOrSpouseName = list[4],
-                    mobile = list[5],
-                    animalList = list[6],
-                    damageDate = list[7],
-                    additionalDetails = list[8],
-
-                    address = list[9],
-                    cropType = list[10],
-                    cerealCrop = list[11],
-                    cropDamageArea = list[12],
-                    fullHousesDamaged = list[13],
-                    partialHousesDamaged = list[14],
-                    cattleInjuryNumber = list[15],
-                    cattleInjuryEstimatedAge = list[16],
-                    humanDeathVictimNames = list[17],
-                    humanDeathNumber = list[18],
-                    temporaryInjuryDetails = list[19],
-                    permanentInjuryDetails = list[20],
-                    bankName = list[21],
-                    ifscCode = list[22],
-                    bankBranch = list[23],
-                    bankHolderName = list[24],
-                    bankAccountNumber = list[25],
-                    pan = list[26],
-                    adhar = list[27],
-                    documentURL = list[28]
-                )
-            }
-
-            override fun SaverScope.save(value: FormData): Any {
-                return listOf(
-                    value.id.toString(),
-                    value.forestGuardID,
-                    value.name,
-                    value.age,
-                    value.fatherOrSpouseName,
-                    value.mobile,
-                    value.animalList,
-                    value.damageDate,
-                    value.additionalDetails,
-
-                    value.address,
-                    value.cropType,
-                    value.cerealCrop,
-                    value.cropDamageArea,
-                    value.fullHousesDamaged,
-                    value.partialHousesDamaged,
-                    value.cattleInjuryNumber,
-                    value.cattleInjuryEstimatedAge,
-                    value.humanDeathVictimNames,
-                    value.humanDeathNumber,
-                    value.temporaryInjuryDetails,
-                    value.permanentInjuryDetails,
-                    value.bankName,
-                    value.ifscCode,
-                    value.bankBranch,
-                    value.bankHolderName,
-                    value.bankAccountNumber,
-                    value.pan,
-                    value.adhar,
-                    value.documentURL
-                )
-            }
-        }
-    }
-}
 
 data class CompensationForm(
     val forestGuardID: String,
@@ -345,6 +337,8 @@ data class CompensationForm(
     val age: Int=1,
     val fatherSpouseName: String,
     val mobile: String,
+    var email:String,
+
     val animalName: String,
     val incidentDate: String,
     val additionalDetails: String="",
@@ -359,20 +353,44 @@ data class CompensationForm(
     val cerealCrop: String,
     val cropDamageArea: Double=0.0,
     var cropDamageAmount:Double = 0.0,
-    val fullHouseDamage: String,
-    val partialHouseDamage: String,
+
+    var cropdamagePhoto: String,
+    var nocReport: String,
+    var landOwnershipReport: String,
+    var rorReport: String,
+
+    var fullHouseDamage: String,
+    var partialHouseDamage: String,
     var houseDamageAmount:Double = 0.0,
+
+    var housedamagePhoto1: String,
+    var housedamagePhoto2: String,
+    var propertyOwnerReport: String,
 
     val numberOfCattlesDied: Int=0,
     val estimatedCattleAge: Int=0,
     var catleInjuryAmount:Double = 0.0,
+
+    var cattlePhoto: String,
+    var vasCertificate: String,
+
 
     val humanDeathVictimName: String,
     val numberOfDeaths: Int=0,
     val temporaryInjuryDetails: String,
     val permanentInjuryDetails: String,
     var humanDeathAmount:Double = 0.0,
+
+    var humanPhoto1: String = "",
+    var humanPhoto2: String = "",
+    var deathCertificate: String = "",
+    var sarpanchReport: String = "",
+    var pmReport: String = "",
+
     var humanInjuryAmount:Double = 0.0,
+
+    var humanInjuryPhoto: String = "",
+    var medicalCertificate: String = "",
 
     val bankName: String,
     val ifscCode: String,
@@ -386,12 +404,10 @@ data class CompensationForm(
 
     // The latest status (for quick access)
     val status: String,
-    val documentURL: String,
+    val idProof: String,
     var photoUrl:String,
     var eSignUrl:String,
-    var incidentUrl1:String,
-    var incidentUrl2:String,
-    var incidentUrl3:String,
+
     val verifiedBy: String,
     val paymentProcessedBy: String,
     val comments: String,
@@ -419,6 +435,7 @@ fun validate(Form:CompensationForm): Boolean {
             Form.age!=0 &&
             Form.fatherSpouseName.isNotEmpty() &&
             Form.mobile.isNotEmpty() &&
+            Form.email.isNotEmpty() &&
             Form.animalName.isNotEmpty() &&
             Form.incidentDate.isNotEmpty() &&
             Form.address.isNotEmpty() &&

@@ -1,4 +1,6 @@
 package com.example.compensation_app.screens.user
+import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -12,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -22,6 +25,12 @@ import com.example.compensation_app.R
 
 @Composable
 fun CompensationScreen(navController: NavController) {
+    val activity = (LocalContext.current as? Activity)
+
+    BackHandler {
+        activity?.finish() // Exits the app
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -44,12 +53,25 @@ fun CompensationScreen(navController: NavController) {
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Compensation App",
+                text = "ANUGRAH - अनुग्रह",
                 fontSize = 27.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Blue
+                color = Color.Black
             )
+
+
+
         }
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "Easy Claims, Timely Relief",
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold,
+            //color = Color(0xFFDDEB9D)
+            color = Color(0xFF0A66C2)
+        )
+        Spacer(modifier = Modifier.height(30.dp))
 
         ButtonComponent("Apply for Compensation"){
             navController.navigate(NavigationScreens.ComplaintScreen.name)
@@ -74,8 +96,14 @@ fun ButtonComponent(text: String, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        colors = ButtonDefaults.buttonColors(Color.Blue)
+        //colors = ButtonDefaults.buttonColors(Color(0xFF578A16))
+        colors = ButtonDefaults.buttonColors(Color(0xFF0A66C2))
+        //colors = ButtonDefaults.buttonColors(Color.Blue)
     ) {
-        Text(text, color = Color.White)
+        Text(
+            text,
+            color = Color.White,
+            fontSize = 15.sp, // Increased font size
+        )
     }
 }

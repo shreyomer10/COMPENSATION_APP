@@ -9,21 +9,34 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 
 interface ApiService {
+
+    @POST("/register")
+    fun register(@Body emp: LoginRequest): Call<ApiResponse>
+
+    @POST("/login")
+    fun login(@Body loginRequest: LoginRequest): Call<LoginResponse>
+
+
+    @POST("/refresh")
+    fun refreshToken(): Call<LoginResponse>
+    @POST("/updatePassword")
+    fun updatePass(@Body emp: LoginRequest): Call<ApiResponse>
     @GET("/guards")
     fun getGuards(): Call<List<emp>>
 
-    @POST("/aguards")
+    @POST("/guards/add")
     fun addGuard(@Body emp: emp): Call<Void>
 
-    @POST("/verify_guard")
+    @POST("/verify/verify_guard")
     fun verifyGuard(@Body request: VerifyGuardRequest): Call<VerifyGuardResponse>
 
-
+    @POST("/email/send_email")
+    fun sendEmail(@Body request: EmailRequest): Call<EmailResponse>
     @POST("/compensationform")
     fun submitCompensationForm(@Body form: CompensationForm): Call<Void>
-    @POST("/get_complaint")
+    @POST("/complaints/get_complaint")
     fun getComplaint(@Body request: SearchComplaintRequest): Call<FullComplaintResponse>
-    @POST("/submit_complaint")
+    @POST("/complaints/submit_complaint")
     fun submitComplaintForm(@Body form: UserComplaintForm): Call<SubmissionComplaintResponse>
 
     // ApiService.kt
@@ -38,7 +51,7 @@ interface ApiService {
 
     @GET("/compensationform/deputyranger/{dept_ranger_id}")
     fun getCompensationFormsByDeptRangerID(@Path("dept_ranger_id") deptRangerId: String): Call<List<RetrivalForm>>
-    @POST("get_guard_complaints")  // Update with your actual endpoint
+    @POST("/complaints/get_guard_complaints")  // Update with your actual endpoint
     fun getGuardComplaints(@Body request: GuardRepository.guardComplaintRequest): Call<GuardComplaintResponse>
 
     @POST("/update_form_status/{form_id}")
@@ -46,8 +59,9 @@ interface ApiService {
         @Path("form_id") formId: String,
         @Body request: UpdateFormStatusRequest
     ): Call<UpdateFormStatusResponse>
-    @POST("reject_complaint")
+    @POST("/complaints/reject_complaint")
     fun rejectComplaint(@Body request: RejectComplaintRequest): Call<ApiResponse>
+
 
 
 }

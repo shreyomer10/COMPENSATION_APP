@@ -227,13 +227,38 @@ suspend fun generateCompensationFormPdfWithLogo(
 
                     // Status Section
                     document.add(Paragraph("Status: ${compensationForm.status}"))
-                    document.add(Paragraph("Document URL: ${compensationForm.documentURL}"))
+                    document.add(Paragraph("ID Proof: ${compensationForm.idProof}"))
+
+
+
+                    document.add(Paragraph("NOC Report: ${compensationForm.nocReport}"))
+                    document.add(Paragraph("Land Ownership Report: ${compensationForm.landOwnershipReport}"))
+                    document.add(Paragraph("ROR Report: ${compensationForm.rorReport}"))
+
+                    document.add(Paragraph("Property Owner Report: ${compensationForm.propertyOwnerReport}"))
+
+                    document.add(Paragraph("VAS Certificate: ${compensationForm.vasCertificate}"))
+
+
+                    document.add(Paragraph("Death Certificate: ${compensationForm.deathCertificate}"))
+                    document.add(Paragraph("Sarpanch Report: ${compensationForm.sarpanchReport}"))
+                    document.add(Paragraph("PM Report: ${compensationForm.pmReport}"))
+
+                    document.add(Paragraph("Medical Certificate: ${compensationForm.medicalCertificate}"))
+
+
+
+
                     document.add(Paragraph("Incident Images"))
 
                     document.add(Paragraph("\n"))
-                    addImageToPdf(document = document,compensationForm.incidentUrl1)
-                    addImageToPdf(document = document,compensationForm.incidentUrl2)
-                    addImageToPdf(document = document,compensationForm.incidentUrl3)
+                    addImageToPdf(document = document,compensationForm.cropdamagePhoto)
+                    addImageToPdf(document = document,compensationForm.housedamagePhoto1)
+                    addImageToPdf(document = document,compensationForm.housedamagePhoto2)
+                    addImageToPdf(document = document,compensationForm.cattlePhoto)
+                    addImageToPdf(document = document,compensationForm.humanPhoto1)
+                    addImageToPdf(document = document,compensationForm.humanPhoto2)
+                    addImageToPdf(document = document,compensationForm.humanInjuryPhoto)
 
 
 
@@ -354,14 +379,41 @@ suspend fun generateCompensationFormPdfWithLogo(
                     document.add(Paragraph("Incident Images"))
 
                     document.add(Paragraph("\n"))
-                    retrivalForm.incidentUrl1?.let { addImageToPdf(document = document, it) }
-                    retrivalForm.incidentUrl2?.let { addImageToPdf(document = document, it) }
-                    retrivalForm.incidentUrl3?.let { addImageToPdf(document = document, it) }
+
 
 
                     // Status Section
                     document.add(Paragraph("Status: ${retrivalForm.status}"))
-                    document.add(Paragraph("Document URL: ${retrivalForm.documentURL}"))
+                    document.add(Paragraph("ID Proof: ${retrivalForm.idProof}"))
+
+
+
+                    document.add(Paragraph("NOC Report: ${retrivalForm.nocReport}"))
+                    document.add(Paragraph("Land Ownership Report: ${retrivalForm.landOwnershipReport}"))
+                    document.add(Paragraph("ROR Report: ${retrivalForm.rorReport}"))
+
+                    document.add(Paragraph("Property Owner Report: ${retrivalForm.propertyOwnerReport}"))
+
+                    document.add(Paragraph("VAS Certificate: ${retrivalForm.vasCertificate}"))
+
+
+                    document.add(Paragraph("Death Certificate: ${retrivalForm.deathCertificate}"))
+                    document.add(Paragraph("Sarpanch Report: ${retrivalForm.sarpanchReport}"))
+                    document.add(Paragraph("PM Report: ${retrivalForm.pmReport}"))
+
+                    document.add(Paragraph("Medical Certificate: ${retrivalForm.medicalCertificate}"))
+
+
+
+
+                    document.add(Paragraph("Incident Images"))
+
+                    document.add(Paragraph("\n"))
+                    addImageToPdf(document = document, retrivalForm.housedamagePhoto2)
+                    addImageToPdf(document = document, retrivalForm.cattlePhoto)
+                    addImageToPdf(document = document, retrivalForm.humanPhoto1)
+                    addImageToPdf(document = document, retrivalForm.humanPhoto2)
+                    addImageToPdf(document = document,retrivalForm.humanInjuryPhoto)
                     document.add(Paragraph("Verified By: ${retrivalForm.verifiedBy}"))
                     document.add(Paragraph("Payment Processed By: ${retrivalForm.paymentProcessedBy}"))
                     document.add(Paragraph("\n"))

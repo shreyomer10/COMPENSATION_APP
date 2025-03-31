@@ -32,14 +32,18 @@ import com.example.compensation_app.Backend.RetrivalForm
 import com.example.compensation_app.Backend.UserComplaintForm
 import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.LocalNavController
+import com.example.compensation_app.screens.AboutUsScreen
+import com.example.compensation_app.screens.ContactUs
 import com.example.compensation_app.screens.guard.DraftApplication
 import com.example.compensation_app.screens.guard.EditDraftApplication
 import com.example.compensation_app.screens.guard.HomeScreen
 import com.example.compensation_app.screens.LoginScreen
+import com.example.compensation_app.screens.SignUpScreen
 import com.example.compensation_app.screens.guard.NewApplication
 import com.example.compensation_app.screens.guard.PrevApplicationScreen
 import com.example.compensation_app.screens.guard.RetrivalFormDetailsScreen
 import com.example.compensation_app.screens.SplashScreen
+import com.example.compensation_app.screens.UpdateChangePass
 import com.example.compensation_app.screens.deputyRanger.DeputyHomeScreen
 
 import com.example.compensation_app.screens.deputyRanger.FormScreen
@@ -75,9 +79,28 @@ fun Navigation(){
         composable(route = NavigationScreens.SplashScreen.name) {
             SplashScreen(navController = navController)
         }
+        composable(route = NavigationScreens.AboutUs.name) {
+            AboutUsScreen(navController = navController)
+        }
+        composable(route = NavigationScreens.ContactUs.name) {
+            ContactUs(navController = navController)
+        }
+
         composable(route = NavigationScreens.LoginScreen.name){
             AnimatedScreenTransition {
                 LoginScreen(navController)
+
+            }
+        }
+        composable(route = NavigationScreens.UpdatePass.name){
+            AnimatedScreenTransition {
+                UpdateChangePass(navController)
+
+            }
+        }
+        composable(route = NavigationScreens.SignUpScreen.name){
+            AnimatedScreenTransition {
+                SignUpScreen(navController)
 
             }
         }

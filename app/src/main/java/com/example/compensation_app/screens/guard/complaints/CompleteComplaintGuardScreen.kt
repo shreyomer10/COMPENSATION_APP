@@ -5,6 +5,7 @@ import androidx.navigation.NavController
 
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
@@ -230,7 +231,7 @@ fun CompleteComplaintFormScreen(navController: NavController, encodedFormComplai
                                     selectedAction = "accept"
                                     showDialog = true
                                 },
-                                colors = ButtonDefaults.buttonColors(Color.Green),
+                                colors = ButtonDefaults.buttonColors(Color(0xFF3E7B27)),
                                 //enabled = comment.isNotEmpty() // Requires comment for forwarding
                             ) {
                                 Text("Forward", color = Color.White)
@@ -291,12 +292,10 @@ fun CompleteComplaintFormScreen(navController: NavController, encodedFormComplai
                                                 formData.adhar = ""
 
                                                 // Document & Image URLs
-                                                formData.documentURL = ""
+                                                formData.idProof = ""
                                                 formData.photoUrl = it.photoUrl.orEmpty()
                                                 formData.eSignUrl = it.eSignUrl.orEmpty()
-                                                formData.incidentUrl1 = it.incidentUrl1.orEmpty()
-                                                formData.incidentUrl2 = it.incidentUrl2.orEmpty()
-                                                formData.incidentUrl3 = it.incidentUrl3.orEmpty()
+
                                             }
                                         } // Not present in `retrivalForm`, set it if needed
 
@@ -382,6 +381,7 @@ fun showDownloadConfirmationDialog(
                             Toast.makeText(context, "Successfully Rejected ", Toast.LENGTH_SHORT).show()
                         }.onFailure { error ->
                            Toast.makeText(context, "Error $error", Toast.LENGTH_SHORT).show()
+                            Log.d("error", "showDownloadConfirmationDialog: $error")
                         }
                     }
 

@@ -91,7 +91,6 @@ fun ComplaintForm(navController: NavController) {
     var showToast by remember { mutableStateOf<String?>(null) }
     val context= LocalContext.current
 
-    val landAreaTracker = remember { LandAreaTracker(context) }
 
 
 
@@ -102,10 +101,10 @@ fun ComplaintForm(navController: NavController) {
     var selectedBeat by remember { mutableStateOf("") }
 
     val divisions = listOf("Raipur")
-    val subdivisions = mapOf("Raipur" to listOf("Hello"))
-    val ranges = mapOf("Hello" to listOf("Abhanpur"))
-    val circles = mapOf("Abhanpur" to listOf("Hello"))
-    val beats = mapOf("Hello" to listOf("Beat 1", "Beat 0"))
+    val subdivisions = mapOf("Raipur" to listOf("hello"))
+    val ranges = mapOf("hello" to listOf("Abhanpur"))
+    val circles = mapOf("Abhanpur" to listOf("hello"))
+    val beats = mapOf("hello" to listOf("Beat 1", "Beat 0"))
 
 
 
@@ -202,6 +201,12 @@ fun ComplaintForm(navController: NavController) {
                     value = formData.mobile,
                     onValueChange = { if (it.length <= 10) formData = formData.copy(mobile = it) },
                     keyboardType = KeyboardType.Number
+                )
+                InputField(
+                    label = "Email",
+                    value = formData.email,
+                    onValueChange = { formData = formData.copy(email = it) },
+                    keyboardType = KeyboardType.Text
                 )
                 SectionTitle("Damage Details (नुकसान विवरण)")
 
@@ -338,34 +343,35 @@ fun ComplaintForm(navController: NavController) {
                         keyboardType = KeyboardType.Text
                     )
 
-                    SectionTitle("Cattle Injury (पशु चोट)")
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = cattleInjuryChecked,
-                            onCheckedChange = { cattleInjuryChecked = it })
-                        Text(
-                            "Cattle Injury Details Required (पशु चोट विवरण आवश्यक है)",
-                            modifier = Modifier.padding(start = 8.dp)
-                        )
-                    }
-                    if (cattleInjuryChecked) {
-                        InputField(
-                            label = "Number of Individuals (व्यक्तियों की संख्या)",
-                            value = formData.cattleInjuryNumber,
-                            onValueChange = { formData = formData.copy(cattleInjuryNumber = it) },
-                            keyboardType = KeyboardType.Number
-                        )
-                        InputField(
-                            label = "Estimated Age (अनुमानित आयु)",
-                            value = formData.cattleInjuryEstimatedAge,
-                            onValueChange = { formData = formData.copy(cattleInjuryEstimatedAge = it) },
-                            keyboardType = KeyboardType.Number
-                        )
+
+                }
+                SectionTitle("Cattle Injury (पशु चोट)")
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = cattleInjuryChecked,
+                        onCheckedChange = { cattleInjuryChecked = it })
+                    Text(
+                        "Cattle Injury Details Required (पशु चोट विवरण आवश्यक है)",
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+                if (cattleInjuryChecked) {
+                    InputField(
+                        label = "Number of Individuals (व्यक्तियों की संख्या)",
+                        value = formData.cattleInjuryNumber,
+                        onValueChange = { formData = formData.copy(cattleInjuryNumber = it) },
+                        keyboardType = KeyboardType.Number
+                    )
+                    InputField(
+                        label = "Estimated Age (अनुमानित आयु)",
+                        value = formData.cattleInjuryEstimatedAge,
+                        onValueChange = { formData = formData.copy(cattleInjuryEstimatedAge = it) },
+                        keyboardType = KeyboardType.Number
+                    )
 
 
-                    }
                 }
                 SectionTitle("Human Death (मानव मृत्यु)")
                 Row(
@@ -502,7 +508,7 @@ fun ComplaintForm(navController: NavController) {
                                                     updatedBy = ""
                                                 )
                                             )
-                                            if (formData.photoUrl.isNotEmpty() && formData.eSignUrl.isNotEmpty()) {
+                                            if (formData.photoUrl.isNotEmpty() && formData.eSignUrl.isNotEmpty() && formData.email.isNotEmpty()) {
                                                 viewModel.submitComplaint(form = formData) { success, complaintId, status ->
                                                     isUploading = false
                                                     if (success) {
@@ -518,6 +524,8 @@ fun ComplaintForm(navController: NavController) {
                                                         Log.d("error", "NewApplication: $status")
                                                     }
                                                 }
+
+
                                             }
                                             else {
                                                 showToast = "Error: Required files not uploaded!"

@@ -1,5 +1,6 @@
 package com.example.compensation_app.components
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,6 +47,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -60,7 +62,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.compensation_app.Navigation.NavigationScreens
+import com.example.compensation_app.Navigation.SecureStorage
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -196,6 +200,38 @@ fun InputField(label: String, value: String, onValueChange: (String) -> Unit, ke
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
+    )
+}
+@Composable
+fun TokenCountdownDisplay(context: Context, sessionDurationMillis: Long = 2 * 60 * 60 * 1000L) {
+    // Get the token expiration time from SecureStorage.
+    // Note: SecureStorage.getTokenExpirationTime returns the absolute expiration time in millis.
+    val expirationTimeMillis = SecureStorage.getTokenExpirationTime(context, sessionDurationMillis) ?: 0L
+
+    // produceState will launch a coroutine that updates 'countdown' every second.
+    val countdown by produceState(initialValue = "Loading...", key1 = expirationTimeMillis) {
+        while (true) {
+            val remainingMillis = expirationTimeMillis - System.currentTimeMillis()
+            value = if (remainingMillis > 0) {
+                val seconds = (remainingMillis / 1000) % 60
+                val minutes = (remainingMillis / (1000 * 60)) % 60
+                val hours = remainingMillis / (1000 * 60 * 60)
+                if (hours > 0) {
+                    "$hours h $minutes min $seconds sec"
+                } else {
+                    "$minutes min $seconds sec"
+                }
+            } else {
+                "Expired"
+            }
+            delay(1000L)
+        }
+    }
+
+    Text(
+        text = "Session expires in: $countdown",
+        style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier.padding(vertical = 8.dp)
     )
 }
 

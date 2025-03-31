@@ -41,6 +41,7 @@ import androidx.navigation.NavController
 import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.Backend.RetrivalForm
 import com.example.compensation_app.Navigation.NavigationScreens
+import com.example.compensation_app.components.getStatusLabel
 import com.example.compensation_app.viewmodel.GuardViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.Gson
@@ -139,8 +140,10 @@ fun PrevApplicationScreen(navController: NavController,guard: String?) {
             // Center the buttons vertically
             Button(
                 onClick = { navController.navigate(NavigationScreens.PendingForYouScreen.name + "/$encodedEmpJson/$encodedPendingForYou") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(Color(0xFF4379FF))
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp),
+                colors = ButtonDefaults.buttonColors(Color(0xFF0A66C2))
             ) {
                 Text(text = "Pending (For You)", color = Color.White)
             }
@@ -149,8 +152,10 @@ fun PrevApplicationScreen(navController: NavController,guard: String?) {
 
             Button(
                 onClick = { navController.navigate(NavigationScreens.PendingScreen.name + "/$encodedEmpJson/$encodedPending") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(Color(0xFF4379FF))
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp),
+                colors = ButtonDefaults.buttonColors(Color(0xFF0A66C2))
             ) {
                 Text(text = "Pending", color = Color.White)
             }
@@ -159,8 +164,10 @@ fun PrevApplicationScreen(navController: NavController,guard: String?) {
 
             Button(
                 onClick = { navController.navigate(NavigationScreens.AcceptedScreen.name + "/$encodedEmpJson/$encodedAccepted") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(Color(0xFF5D8BFF))
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp),
+                colors = ButtonDefaults.buttonColors(Color(0xFF0A66C2))
             ) {
                 Text(text = "Accepted", color = Color.White)
             }
@@ -169,27 +176,15 @@ fun PrevApplicationScreen(navController: NavController,guard: String?) {
 
             Button(
                 onClick = { navController.navigate(NavigationScreens.RejectedScreen.name + "/$encodedEmpJson/$encodedRejected") },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp),
                 colors = ButtonDefaults.buttonColors(Color(0xFFFF4C4C))
             ) {
                 Text(text = "Rejected", color = Color.White)
             }
         }
-//        else{
-//            LazyColumn {
-//                if (Forms.isNotEmpty()) {
-//                    items(Forms) { form ->
-//                        ApplicationItem(form=form, navController = navController,text=text)
-//                    }
-//                } else {
-//                    item {
-//                        Text(text = "No applications found", modifier = Modifier.padding(16.dp))
-//                    }
-//                }
-//            }
-//        }
 
-        // Display the Forms list
 
     }
 }
@@ -200,13 +195,14 @@ fun ApplicationItem(navController: NavController, form: RetrivalForm,text:String
     val gson = Gson()
     val jsonForm = gson.toJson(form)
     val encodedForm = URLEncoder.encode(jsonForm, StandardCharsets.UTF_8.toString())
-
+    val statusString = form.status?.let { getStatusLabel(it) }
     Card(
         elevation = CardDefaults.elevatedCardElevation(4.dp),
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .height(120.dp)
+            .height(150.dp),
+        //colors = CardDefaults.cardColors(Color(0xFF9AA6B2))
     ) {
         Column(
             modifier = Modifier
@@ -214,24 +210,39 @@ fun ApplicationItem(navController: NavController, form: RetrivalForm,text:String
                 .padding(12.dp)
         ) {
             Text(
+                text = "Application ID: ${form.formID}",
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            Text(
                 text = "Applicant Name: ${form.applicantName}",
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
+
             Text(
                 text = "Mobile: ${form.mobile}",
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
+            Text(
+                text = "Status: $statusString",
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
             Button(
                 onClick = {
                     navController.navigate(NavigationScreens.CompleteFormScreen.name + "/$encodedForm" +"/$text")
                 },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                colors = ButtonDefaults.buttonColors(Color(0xFF0A66C2))
             ) {
-                Text(text = "View Full Application")
+                Text(text = "View Full Application", color = Color.White)
             }
         }
     }

@@ -51,9 +51,7 @@ fun RetrivalFormDetailsScreen(navController: NavController, encodedForm: String?
     val retrivalForm = encodedForm?.let {
         gson.fromJson(it, RetrivalForm::class.java)
     }
-    if (retrivalForm != null) {
-        Log.d("decoded form link", "RetrivalFormDetailsScreen: ${retrivalForm.documentURL})")
-    }
+
     var comment by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
     var selectedAction by remember { mutableStateOf("") }
@@ -62,19 +60,36 @@ fun RetrivalFormDetailsScreen(navController: NavController, encodedForm: String?
 
 
     if (retrivalForm != null) {
-        retrivalForm.documentURL = encodeFirebaseUrl(retrivalForm.documentURL)
+        retrivalForm.idProof = encodeFirebaseUrl(retrivalForm.idProof)
         retrivalForm.eSignUrl = encodeFirebaseUrl(retrivalForm.eSignUrl)
         retrivalForm.photoUrl = encodeFirebaseUrl(retrivalForm.photoUrl)
 
-        retrivalForm.incidentUrl1 = encodeFirebaseUrl(retrivalForm.incidentUrl1)
+        retrivalForm.cropdamagePhoto = encodeFirebaseUrl(retrivalForm.cropdamagePhoto)
+        retrivalForm.nocReport = encodeFirebaseUrl(retrivalForm.nocReport)
+        retrivalForm.landOwnershipReport = encodeFirebaseUrl(retrivalForm.landOwnershipReport)
+        retrivalForm.rorReport = encodeFirebaseUrl(retrivalForm.rorReport)
 
-        retrivalForm.incidentUrl2 = encodeFirebaseUrl(retrivalForm.incidentUrl2)
-        retrivalForm.incidentUrl3 = encodeFirebaseUrl(retrivalForm.incidentUrl3)
+        retrivalForm.housedamagePhoto1 = encodeFirebaseUrl(retrivalForm.housedamagePhoto1)
+        retrivalForm.housedamagePhoto2 = encodeFirebaseUrl(retrivalForm.housedamagePhoto2)
+        retrivalForm.propertyOwnerReport = encodeFirebaseUrl(retrivalForm.propertyOwnerReport)
+
+        retrivalForm.cattlePhoto = encodeFirebaseUrl(retrivalForm.cattlePhoto)
+        retrivalForm.vasCertificate = encodeFirebaseUrl(retrivalForm.vasCertificate)
+
+        retrivalForm.humanPhoto1 = encodeFirebaseUrl(retrivalForm.humanPhoto1)
+        retrivalForm.humanPhoto2 = encodeFirebaseUrl(retrivalForm.humanPhoto2)
+        retrivalForm.deathCertificate = encodeFirebaseUrl(retrivalForm.deathCertificate)
+        retrivalForm.sarpanchReport = encodeFirebaseUrl(retrivalForm.sarpanchReport)
+        retrivalForm.pmReport = encodeFirebaseUrl(retrivalForm.pmReport)
+
+        retrivalForm.humanInjuryPhoto = encodeFirebaseUrl(retrivalForm.humanInjuryPhoto)
+        retrivalForm.medicalCertificate = encodeFirebaseUrl(retrivalForm.medicalCertificate)
+
 
 
 // Restore correct encoding
 
-        Log.d("KY KARU", "RetrivalFormDetailsScreen: ${retrivalForm.documentURL}")
+        Log.d("KY KARU", "RetrivalFormDetailsScreen: ${retrivalForm.idProof}")
 
         Column(
 
@@ -131,6 +146,8 @@ fun RetrivalFormDetailsScreen(navController: NavController, encodedForm: String?
                         DetailRow(label = "Age (आयु)", value = retrivalForm.age?.toString())
                         DetailRow(label = "Father/Spouse Name (पिता/पति का नाम)", value = retrivalForm.fatherSpouseName)
                         DetailRow(label = "Mobile (मोबाइल)", value = retrivalForm.mobile)
+                        DetailRow(label = "Email", value = retrivalForm.email)
+
                     }
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -149,6 +166,51 @@ fun RetrivalFormDetailsScreen(navController: NavController, encodedForm: String?
                         DetailRow(label = "Permanent Injury Details (स्थायी चोटों का विवरण)", value = retrivalForm.permanentInjuryDetails)
                         DetailRow(label = "Human Injury Amount", value = retrivalForm.humanInjuryAmount.toString())
                         DetailRow(label = "Human Death Amount ", value = retrivalForm.humanDeathAmount.toString())
+                        retrivalForm.humanInjuryPhoto?.let { ImageRow("Human Injury Photo", it) }
+                        retrivalForm.humanPhoto1?.let { ImageRow("Human Death Photo", it) }
+                        retrivalForm.humanPhoto2?.let { ImageRow("Human Death Photo", it) }
+                        Button(onClick = {
+                            retrivalForm.deathCertificate?.let {
+
+                                openPdfWithIntent(context = context, it)
+                            } ?: run {
+                                Toast.makeText(context, "No URL found", Toast.LENGTH_SHORT).show()  // Show a toast if URL is null
+                            }
+                        }) {
+                            Text("Death certificate Report")
+                        }
+                        Button(onClick = {
+                            retrivalForm.sarpanchReport?.let {
+
+                                openPdfWithIntent(context = context, it)
+                            } ?: run {
+                                Toast.makeText(context, "No URL found", Toast.LENGTH_SHORT).show()  // Show a toast if URL is null
+                            }
+                        }) {
+                            Text("SarpanchReport")
+                        }
+                        Button(onClick = {
+                            retrivalForm.pmReport?.let {
+
+                                openPdfWithIntent(context = context, it)
+                            } ?: run {
+                                Toast.makeText(context, "No URL found", Toast.LENGTH_SHORT).show()  // Show a toast if URL is null
+                            }
+                        }) {
+                            Text("PM Report")
+                        }
+                        Button(onClick = {
+                            retrivalForm.medicalCertificate?.let {
+
+                                openPdfWithIntent(context = context, it)
+                            } ?: run {
+                                Toast.makeText(context, "No URL found", Toast.LENGTH_SHORT).show()  // Show a toast if URL is null
+                            }
+                        }) {
+                            Text("Mediacl Certificate")
+                        }
+
+
 
                     }
                     Spacer(modifier = Modifier.height(16.dp))
@@ -157,6 +219,17 @@ fun RetrivalFormDetailsScreen(navController: NavController, encodedForm: String?
                         DetailRow(label = "Number of Cattles Died (मरे हुए मवेशियों की संख्या)", value = retrivalForm.numberOfCattlesDied?.toString())
                         DetailRow(label = "Estimated Cattle Age (मवेशियों की अनुमानित आयु)", value = retrivalForm.estimatedCattleAge?.toString())
                         DetailRow(label = "Cattle Death Amount", value = retrivalForm.catleInjuryAmount.toString())
+                        retrivalForm.cattlePhoto?.let { ImageRow("Cattle Photo", it) }
+                        Button(onClick = {
+                            retrivalForm.vasCertificate?.let {
+
+                                openPdfWithIntent(context = context, it)
+                            } ?: run {
+                                Toast.makeText(context, "No URL found", Toast.LENGTH_SHORT).show()  // Show a toast if URL is null
+                            }
+                        }) {
+                            Text("Vas Certificate")
+                        }
 
                     }
                     Spacer(modifier = Modifier.height(16.dp))
@@ -167,9 +240,57 @@ fun RetrivalFormDetailsScreen(navController: NavController, encodedForm: String?
                         DetailRow(label = "Crop Damage Area (फसल क्षति क्षेत्र)", value = retrivalForm.cropDamageArea?.toString())
                         DetailRow(label = "Crop Damage Amount ", value = retrivalForm.cropDamageAmount.toString())
 
+                        retrivalForm.cropdamagePhoto?.let { ImageRow("Crop Damage Photo", it) }
+                        Button(onClick = {
+                            retrivalForm.nocReport?.let {
+
+                                openPdfWithIntent(context = context, it)
+                            } ?: run {
+                                Toast.makeText(context, "No URL found", Toast.LENGTH_SHORT).show()  // Show a toast if URL is null
+                            }
+                        }) {
+                            Text("NOC Report")
+                        }
+                        Button(onClick = {
+                            retrivalForm.landOwnershipReport?.let {
+
+                                openPdfWithIntent(context = context, it)
+                            } ?: run {
+                                Toast.makeText(context, "No URL found", Toast.LENGTH_SHORT).show()  // Show a toast if URL is null
+                            }
+                        }) {
+                            Text("Land Ownership Report")
+                        }
+                        Button(onClick = {
+                            retrivalForm.rorReport?.let {
+
+                                openPdfWithIntent(context = context, it)
+                            } ?: run {
+                                Toast.makeText(context, "No URL found", Toast.LENGTH_SHORT).show()  // Show a toast if URL is null
+                            }
+                        }) {
+                            Text("ROR REPORT")
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    CompleteFormSectionCard(title = "House Damage Details") {
+
                         DetailRow(label = "Full House Damage (पूर्ण घर क्षति)", value = retrivalForm.fullHouseDamage)
                         DetailRow(label = "Partial House Damage (आंशिक घर क्षति)", value = retrivalForm.partialHouseDamage)
                         DetailRow(label = "House Damage Amount", value = retrivalForm.houseDamageAmount.toString())
+                        retrivalForm.housedamagePhoto1?.let { ImageRow("House Damage Photo", it) }
+                        retrivalForm.housedamagePhoto2?.let { ImageRow("House Damage Photo", it) }
+                        Button(onClick = {
+                            retrivalForm.propertyOwnerReport?.let {
+
+                                openPdfWithIntent(context = context, it)
+                            } ?: run {
+                                Toast.makeText(context, "No URL found", Toast.LENGTH_SHORT).show()  // Show a toast if URL is null
+                            }
+                        }) {
+                            Text("Property Ownership Document")
+                        }
 
                     }
                     Spacer(modifier = Modifier.height(16.dp))
@@ -230,11 +351,6 @@ fun RetrivalFormDetailsScreen(navController: NavController, encodedForm: String?
                     }
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    CompleteFormSectionCard(title = "Incident Images (घटना की तस्वीरें)") {
-                        retrivalForm.incidentUrl1?.let { ImageRow("Incident Image 1", it) }
-                        retrivalForm.incidentUrl2?.let { ImageRow("Incident Image 2", it) }
-                        retrivalForm.incidentUrl3?.let { ImageRow("Incident Image 3", it) }
-                    }
                     Spacer(modifier = Modifier.height(16.dp))
 
                     CompleteFormSectionCard(title = "Photo & eSign (फोटो और हस्ताक्षर)") {
@@ -245,7 +361,7 @@ fun RetrivalFormDetailsScreen(navController: NavController, encodedForm: String?
 
                     CompleteFormSectionCard(title = "Documents") {
                         Button(onClick = {
-                            retrivalForm.documentURL?.let {
+                            retrivalForm.idProof?.let {
 
                                 openPdfWithIntent(context = context, it)
                             } ?: run {
@@ -254,6 +370,7 @@ fun RetrivalFormDetailsScreen(navController: NavController, encodedForm: String?
                         }) {
                             Text("Open PDF")
                         }
+
 
                     }
                     Spacer(modifier = Modifier.height(16.dp))
@@ -308,7 +425,7 @@ fun RetrivalFormDetailsScreen(navController: NavController, encodedForm: String?
                                             selectedAction = "accept"
                                             showDialog = true
                                         },
-                                        colors = ButtonDefaults.buttonColors(Color.Green),
+                                        colors = ButtonDefaults.buttonColors(Color(0xFF3E7B27)),
                                         //enabled = comment.isNotEmpty() // Requires comment for forwarding
                                     ) {
                                         Text("Forward", color = Color.White)
