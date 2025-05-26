@@ -51,6 +51,7 @@ import com.example.compensation_app.components.RequiredDocumentsTable
 import com.example.compensation_app.components.SaveDraftDialog
 import com.example.compensation_app.components.SectionTitle
 import com.example.compensation_app.components.getCurrentTimestamp
+import com.example.compensation_app.components.loadJurisdictionJson
 
 import com.example.compensation_app.sqlite.MainViewModel
 import com.example.compensation_app.viewmodel.GuardViewModel
@@ -91,20 +92,37 @@ fun ComplaintForm(navController: NavController) {
     var showToast by remember { mutableStateOf<String?>(null) }
     val context= LocalContext.current
 
+    val jurisdictionTree = remember { loadJurisdictionJson(context) }
 
-
-
+    var selectedCircle by remember { mutableStateOf("") }
     var selectedDivision by remember { mutableStateOf("") }
     var selectedSubdivision by remember { mutableStateOf("") }
     var selectedRange by remember { mutableStateOf("") }
-    var selectedCircle by remember { mutableStateOf("") }
+    var selectedCircle1 by remember { mutableStateOf("") }
     var selectedBeat by remember { mutableStateOf("") }
 
-    val divisions = listOf("Raipur")
-    val subdivisions = mapOf("Raipur" to listOf("hello"))
-    val ranges = mapOf("hello" to listOf("Abhanpur"))
-    val circles = mapOf("Abhanpur" to listOf("hello"))
-    val beats = mapOf("hello" to listOf("Beat 1", "Beat 0"))
+    val divisions = (jurisdictionTree[selectedCircle] as? Map<*, *>)?.keys?.map { it.toString() } ?: emptyList()
+    val subdivisions = (jurisdictionTree[selectedCircle] as? Map<*, *>)?.get(selectedDivision) as? Map<*, *>?
+    val subdivisionsList = subdivisions?.keys?.map { it.toString() } ?: emptyList()
+
+    val ranges = (subdivisions?.get(selectedSubdivision) as? Map<*, *>)?.keys?.map { it.toString() } ?: emptyList()
+    val circles1 = ((subdivisions?.get(selectedSubdivision) as? Map<*, *>)?.get(selectedRange) as? Map<*, *>)?.keys?.map { it.toString() } ?: emptyList()
+    val beats = ((subdivisions?.get(selectedSubdivision) as? Map<*, *>)?.get(selectedRange) as? Map<*, *>)?.get(selectedCircle1) as? Map<*, *>
+    val beatsList = beats?.keys?.map { it.toString() } ?: emptyList()
+
+
+
+//    var selectedDivision by remember { mutableStateOf("") }
+//    var selectedSubdivision by remember { mutableStateOf("") }
+//    var selectedRange by remember { mutableStateOf("") }
+//    var selectedCircle by remember { mutableStateOf("") }
+//    var selectedBeat by remember { mutableStateOf("") }
+//
+//    val divisions = listOf("Raipur")
+//    val subdivisions = mapOf("Raipur" to listOf("hello"))
+//    val ranges = mapOf("hello" to listOf("Abhanpur"))
+//    val circles = mapOf("Abhanpur" to listOf("hello"))
+//    val beats = mapOf("hello" to listOf("Beat 1", "Beat 0"))
 
 
 
@@ -208,6 +226,12 @@ fun ComplaintForm(navController: NavController) {
                     onValueChange = { formData = formData.copy(email = it) },
                     keyboardType = KeyboardType.Text
                 )
+                InputField(
+                    label = "Adhaar number",
+                    value = formData.adhaar,
+                    onValueChange = { formData = formData.copy(adhaar = it) },
+                    keyboardType = KeyboardType.Text
+                )
                 SectionTitle("Damage Details (नुकसान विवरण)")
 
                 // Dropdown for Animal List
@@ -245,48 +269,53 @@ fun ComplaintForm(navController: NavController) {
                     onValueChange = { formData = formData.copy(address = it) },
                     keyboardType = KeyboardType.Text
                 )
-                DropdownMenuComponent("Select Division",
-                    divisions, selectedDivision) {
-                    selectedDivision = it;
-                    formData.division=it;
-                    formData.subdivision="";
-                    formData.range_="";
-                    formData.circle1="";
-                    formData.beat="";
-                    selectedSubdivision = "" }
-                if (selectedDivision.isNotEmpty()) {
-                    DropdownMenuComponent("Select Subdivision",
-                        subdivisions[selectedDivision] ?: emptyList(), selectedSubdivision) {
-                        selectedSubdivision = it;
-                        formData.subdivision=it;
-                        formData.range_="";
-                        formData.circle1="";
-                        formData.beat="";
-                        selectedRange = "";  }
+                DropdownMenuComponent("Select Circle", jurisdictionTree.keys.toList(), selectedCircle) {
+                    selectedCircle = it
+                    selectedDivision = ""
+                    selectedSubdivision = ""
+                    selectedRange = ""
+                    selectedCircle1 = ""
+                    selectedBeat = ""
                 }
-                if (selectedSubdivision.isNotEmpty()) {
-                    DropdownMenuComponent("Select Range",
-                        ranges[selectedSubdivision] ?: emptyList(), selectedRange) {
-                        selectedRange = it;
-                        formData.range_=it;
-                        formData.circle1="";
-                        formData.beat="";
-                        selectedCircle = "" }
-                }
-                if (selectedRange.isNotEmpty()) {
-                    DropdownMenuComponent("Select Circle",
-                        circles[selectedRange] ?: emptyList(), selectedCircle) {
-                        selectedCircle = it;
 
-                        formData.circle1=it;
-                        formData.beat="";
-                        selectedBeat = "" }
-                }
                 if (selectedCircle.isNotEmpty()) {
-                    DropdownMenuComponent("Select Beat",
-                        beats[selectedCircle] ?: emptyList(), selectedBeat) {
+                    DropdownMenuComponent("Select Division", divisions, selectedDivision) {
+                        selectedDivision = it
+                        selectedSubdivision = ""
+                        selectedRange = ""
+                        selectedCircle1 = ""
+                        selectedBeat = ""
+                    }
+                }
+
+                if (selectedDivision.isNotEmpty()) {
+                    DropdownMenuComponent("Select Subdivision", subdivisionsList, selectedSubdivision) {
+                        selectedSubdivision = it
+                        selectedRange = ""
+                        selectedCircle1 = ""
+                        selectedBeat = ""
+                    }
+                }
+
+                if (selectedSubdivision.isNotEmpty()) {
+                    DropdownMenuComponent("Select Range", ranges, selectedRange) {
+                        selectedRange = it
+                        selectedCircle1 = ""
+                        selectedBeat = ""
+                    }
+                }
+
+                if (selectedRange.isNotEmpty()) {
+                    DropdownMenuComponent("Select Circle1", circles1, selectedCircle1) {
+                        selectedCircle1 = it
+                        selectedBeat = ""
+                    }
+                }
+
+                if (selectedCircle1.isNotEmpty()) {
+                    DropdownMenuComponent("Select Beat", beatsList, selectedBeat) {
                         selectedBeat = it
-                        formData.beat=it;}
+                    }
                 }
                 SectionTitle("Crop Damage (फसल का नुकसान)")
                 Row(
@@ -480,6 +509,12 @@ fun ComplaintForm(navController: NavController) {
                         confirmButton = {
                             Button(
                                 onClick = {
+                                    formData.Circle_CG=selectedCircle
+                                    formData.division=selectedDivision
+                                    formData.subdivision=selectedSubdivision
+                                    formData.range_=selectedRange
+                                    formData.circle1=selectedCircle1
+                                    formData.beat=selectedBeat
                                     showConfirmationDialog = false
 
                                     isUploading = true
@@ -545,7 +580,11 @@ fun ComplaintForm(navController: NavController) {
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)) // Green color
                             ) {
-                                Text(text = "Yes (हां)", color = Color.White, fontWeight = FontWeight.Bold)
+                                if (isUploading) {
+                                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
+                                } else {
+                                    Text(text = "Yes (हां)", color = Color.White, fontWeight = FontWeight.Bold)
+                                }
                             }
                         },
                         dismissButton = {

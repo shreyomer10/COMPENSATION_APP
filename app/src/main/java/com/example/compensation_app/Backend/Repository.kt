@@ -23,24 +23,24 @@ class GuardRepository @Inject constructor() {
 
             override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
                 onResult(null, "Error: ${t.message}")
+
+                Log.d("error", "onFailure: $t")
             }
         })
     }
-    fun refreshToken(onResult: (LoginResponse?, String?) -> Unit) {
+    fun refreshToken(onResult: (LoginResponse?, String?,Int?) -> Unit) {
         RetrofitClient.instance.refreshToken().enqueue(object : Callback<LoginResponse> {
             override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                 if (response.isSuccessful) {
-                    onResult(response.body(), null)
+                    onResult(response.body(), null,response.code())
                 } else {
-                    if (response.code() == 401 || response.code() == 403) {
-                        //onLogout() // Logout user
-                    }
-                    onResult(null, "Token refresh failed: ${response.errorBody()?.string()}")
+
+                    onResult(null, "Token refresh failed: ${response.errorBody()?.string()}",response.code())
                 }
             }
 
             override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
-                onResult(null, "Error: ${t.message}")
+                onResult(null, "Error: ${t.message}",null)
             }
         })
     }
@@ -76,6 +76,28 @@ class GuardRepository @Inject constructor() {
             }
         })
     }
+
+    fun getOrCreatePdf(request: PdfRequest, onResult: (PdfResponse?, String?, Int?) -> Unit) {
+        RetrofitClient.instance.getOrCreatePdf(request).enqueue(object : Callback<PdfResponse> {
+            override fun onResponse(call: Call<PdfResponse>, response: Response<PdfResponse>) {
+                if (response.isSuccessful) {
+                    onResult(response.body(), null, response.code())
+                } else {
+                    val errorMsg = try {
+                        response.errorBody()?.string()
+                    } catch (e: Exception) {
+                        "Unknown error"
+                    }
+                    onResult(null, "PDF generation failed: $errorMsg", response.code())
+                }
+            }
+
+            override fun onFailure(call: Call<PdfResponse>, t: Throwable) {
+                onResult(null, "Error: ${t.message}", null)
+            }
+        })
+    }
+
     // Fetch guards from the server
     fun getGuards(onResult: (List<emp>?, String?) -> Unit) {
         RetrofitClient.instance.getGuards().enqueue(object : Callback<List<emp>> {
@@ -129,19 +151,19 @@ class GuardRepository @Inject constructor() {
     }
     fun submitCompensationForm(
         form: CompensationForm,
-        onResult: (Boolean, String?) -> Unit
+        onResult: (Boolean, String?,Int?) -> Unit
     ) {
         RetrofitClient.instance.submitCompensationForm(form).enqueue(object : Callback<Void> {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                 if (response.isSuccessful) {
-                    onResult(true, null)
+                    onResult(true, null,response.code())
                 } else {
-                    onResult(false, response.errorBody()?.string())
+                    onResult(false, response.errorBody()?.string(),response.code())
                 }
             }
 
             override fun onFailure(call: Call<Void>, t: Throwable) {
-                onResult(false, t.message)
+                onResult(false, t.message,null)
             }
         })
     }
@@ -166,7 +188,7 @@ class GuardRepository @Inject constructor() {
 
     fun getGuardComplaints(
         guardId: String,
-        onResult: (List<UserComplaintRetrievalForm>?, String?) -> Unit
+        onResult: (List<UserComplaintRetrievalFormShort>?, String?,Int?) -> Unit
     ) {
         RetrofitClient.instance.getGuardComplaints(guardComplaintRequest(guardId))
             .enqueue(object : Callback<GuardComplaintResponse> {
@@ -177,62 +199,62 @@ class GuardRepository @Inject constructor() {
                     if (response.isSuccessful) {
                         val responseBody = response.body()
                         if (responseBody?.found == "yes" && !responseBody.complaints.isNullOrEmpty()) {
-                            onResult(responseBody.complaints, null)
+                            onResult(responseBody.complaints, null,response.code())
                         } else {
-                            onResult(emptyList(), "No complaints found for this guard")
+                            onResult(emptyList(), "No complaints found for this guard",response.code())
                         }
                     } else {
-                        onResult(null, "Failed to fetch complaints: ${response.errorBody()?.string()}")
+                        onResult(emptyList(), "Failed to fetch complaints: ${response.errorBody()?.string()}",response.code())
                     }
                 }
 
                 override fun onFailure(call: Call<GuardComplaintResponse>, t: Throwable) {
-                    onResult(null, "Error: ${t.message}")
+                    onResult(emptyList(), "Error: ${t.message}",null)
                 }
             })
     }
 
     fun getCompensationFormsByDeptRangerId(
         deptRangerId: String,
-        onResult: (List<RetrivalForm>?, String?) -> Unit
+        onResult: (List<RetrivalFormShort>?, String?,Int?) -> Unit
     ) {
         RetrofitClient.instance.getCompensationFormsByDeptRangerID(deptRangerId)
-            .enqueue(object : Callback<List<RetrivalForm>> {
+            .enqueue(object : Callback<List<RetrivalFormShort>> {
                 override fun onResponse(
-                    call: Call<List<RetrivalForm>>,
-                    response: Response<List<RetrivalForm>>
+                    call: Call<List<RetrivalFormShort>>,
+                    response: Response<List<RetrivalFormShort>>
                 ) {
                     if (response.isSuccessful) {
-                        onResult(response.body(), null)
+                        onResult(response.body(), null,response.code())
                     } else {
-                        onResult(null, "Failed to fetch compensation forms: ${response.errorBody()?.string()}")
+                        onResult(null, "Failed to fetch compensation forms: ${response.errorBody()?.string()}",response.code())
                     }
                 }
 
-                override fun onFailure(call: Call<List<RetrivalForm>>, t: Throwable) {
-                    onResult(null, "Error: ${t.message}")
+                override fun onFailure(call: Call<List<RetrivalFormShort>>, t: Throwable) {
+                    onResult(null, "Error: ${t.message}",null)
                 }
             })
     }
     fun getCompensationFormsByGuardId(
         forestGuardId: String,
-        onResult: (List<RetrivalForm>?, String?) -> Unit
+        onResult: (List<RetrivalFormShort>?, String?,Int?) -> Unit
     ) {
         RetrofitClient.instance.getCompensationFormsByGuardId(forestGuardId)
-            .enqueue(object : Callback<List<RetrivalForm>> {
+            .enqueue(object : Callback<List<RetrivalFormShort>> {
                 override fun onResponse(
-                    call: Call<List<RetrivalForm>>,
-                    response: Response<List<RetrivalForm>>
+                    call: Call<List<RetrivalFormShort>>,
+                    response: Response<List<RetrivalFormShort>>
                 ) {
                     if (response.isSuccessful) {
-                        onResult(response.body(), null)
+                        onResult(response.body(), null,response.code())
                     } else {
-                        onResult(null, "Failed to fetch compensation forms: ${response.errorBody()?.string()}")
+                        onResult(null, "Failed to fetch compensation forms: ${response.errorBody()?.string()}",response.code())
                     }
                 }
 
-                override fun onFailure(call: Call<List<RetrivalForm>>, t: Throwable) {
-                    onResult(null, "Error: ${t.message}")
+                override fun onFailure(call: Call<List<RetrivalFormShort>>, t: Throwable) {
+                    onResult(null, "Error: ${t.message}",null)
                 }
             })
     }
@@ -266,7 +288,7 @@ class GuardRepository @Inject constructor() {
         empId: String,
         action: String,
         comments: String?,
-        callback: (Result<UpdateFormStatusResponse>) -> Unit
+        callback: (Result<UpdateFormStatusResponse>,Int?) -> Unit
     ) {
         val request = UpdateFormStatusRequest(empId, action, comments)
 
@@ -277,15 +299,15 @@ class GuardRepository @Inject constructor() {
             ) {
                 if (response.isSuccessful) {
                     response.body()?.let {
-                        callback(Result.success(it))
-                    } ?: callback(Result.failure(Exception("Response body is null")))
+                        callback(Result.success(it),response.code())
+                    } ?: callback(Result.failure(Exception("Response body is null")),response.code())
                 } else {
-                    callback(Result.failure(Exception("API call failed with code ${response.code()}")))
+                    callback(Result.failure(Exception("API call failed with code ${response.code()}")),response.code())
                 }
             }
 
             override fun onFailure(call: Call<UpdateFormStatusResponse>, t: Throwable) {
-                callback(Result.failure(t))
+                callback(Result.failure(t),null)
             }
         })
     }
@@ -333,20 +355,69 @@ class GuardRepository @Inject constructor() {
             }
         })
     }
-    fun rejectComplaint(request: RejectComplaintRequest, onResult: (ApiResponse?, String?) -> Unit) {
+    fun rejectComplaint(request: RejectComplaintRequest, onResult: (ApiResponse?, String?,Int?) -> Unit) {
         RetrofitClient.instance.rejectComplaint(request).enqueue(object : Callback<ApiResponse> {
             override fun onResponse(call: Call<ApiResponse>, response: Response<ApiResponse>) {
                 if (response.isSuccessful) {
-                    onResult(response.body(), null)
+                    onResult(response.body(), null,response.code())
                 } else {
-                    onResult(null, "Failed to reject complaint: ${response.errorBody()?.string()}")
+                    onResult(null, "Failed to reject complaint: ${response.errorBody()?.string()}",response.code())
                 }
             }
 
             override fun onFailure(call: Call<ApiResponse>, t: Throwable) {
-                onResult(null, "Error: ${t.message}")
+                onResult(null, "Error: ${t.message}",null)
             }
         })
     }
+    fun getEachCompensationForm(
+        form_id:String,
+        onResult: (RetrivalForm?, String?,Int?) -> Unit
+    ) {
+        RetrofitClient.instance.getEachCompensationForm(formId = form_id)
+            .enqueue(object : Callback<RetrivalForm> {
+                override fun onResponse(
+                    call: Call<RetrivalForm>,
+                    response: Response<RetrivalForm>
+                ) {
+                    if (response.isSuccessful) {
+                        onResult(response.body(), null,response.code())
+                    } else {
+                        onResult(null, "Failed to fetch compensation forms: ${response.errorBody()?.string()}",response.code())
+                    }
+                }
 
+                override fun onFailure(call: Call<RetrivalForm>, t: Throwable) {
+                    onResult(null, "Error: ${t.message}",null)
+                }
+            })
+    }
+
+    fun getEachComplaint(
+        formId: String,
+        onResult: (UserComplaintRetrievalForm?, String?,Int?) -> Unit
+    ) {
+        RetrofitClient.instance.getEachComplaint(formId)
+            .enqueue(object : Callback<FullComplaintResponse> {
+                override fun onResponse(
+                    call: Call<FullComplaintResponse>,
+                    response: Response<FullComplaintResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        val responseBody = response.body()
+                        if (responseBody?.found == "yes" && responseBody.complaint!=null) {
+                            onResult(responseBody.complaint, null,response.code())
+                        } else {
+                            onResult(null, "No complaints found for this guard",response.code())
+                        }
+                    } else {
+                        onResult(null, "Failed to fetch complaints: ${response.errorBody()?.string()}",response.code())
+                    }
+                }
+
+                override fun onFailure(call: Call<FullComplaintResponse>, t: Throwable) {
+                    onResult(null, "Error: ${t.message}",null)
+                }
+            })
+    }
 }

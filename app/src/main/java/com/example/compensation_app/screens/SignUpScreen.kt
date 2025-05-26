@@ -91,7 +91,7 @@ fun SignUpScreen(navController: NavController) {
             Circle1 = "",
             roll = "guard",
             subdivision = "",
-            division = "", range_ = "", beat = 0))
+            division = "", range_ = "", beat = ""))
     }
 
     Log.d("Final", "NewApplication:${emp.emp_id} ")

@@ -57,7 +57,9 @@ import com.example.compensation_app.Backend.validate
 import com.example.compensation_app.FireStorage.FileDetails
 import com.example.compensation_app.FireStorage.ImagePickerButton
 import com.example.compensation_app.FireStorage.SelectPdfButton
+import com.example.compensation_app.FireStorage.deleteFormFiles
 import com.example.compensation_app.FireStorage.uploadFormFiles
+import com.example.compensation_app.Navigation.logoutUser
 import com.example.compensation_app.components.DamageDetailsDropdown
 import com.example.compensation_app.components.DatePickerField
 import com.example.compensation_app.components.InputField
@@ -88,6 +90,7 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
         formData=fform
 
     }
+    Log.d("Complaint ID", "EditDraftApplication: ${formData.complaint_id}")
     val gguard = guard?.let {
         gson.fromJson(it, emp::class.java)
     }
@@ -695,7 +698,7 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
 
                                                 val form = CompensationForm(
                                                     forestGuardID = gguard.emp_id,
-                                                    complaint_id = null,
+                                                    complaint_id = formData.complaint_id,
                                                     applicantName = formData.name,
                                                     age = formData.age.toInt(),
                                                     fatherSpouseName = formData.fatherOrSpouseName,
@@ -779,16 +782,35 @@ fun EditDraftApplication(navController: NavController, guard: String?, draftForm
                                                     Log.d("validity", "NewApplication: Valid hai")
 
 
-                                                    viewModel.newApplicationForm(form = form) { success, status ->
-                                                        isUploading = false  // ✅ Hide loading when done
+                                                    viewModel.newApplicationForm(form = form) { success, status ,code->
+                                                        // ✅ Hide loading when done
 
                                                         if (success) {
                                                             showToast = "Form submitted successfully!"
                                                             navController.popBackStack()
-                                                        } else {
-                                                            showToast = "Error: $status"
-                                                            Log.d("error", "NewApplication: $status")
                                                         }
+                                                        else {
+
+                                                            Log.d("error", "NewApplication: $status")
+                                                            deleteFormFiles(
+                                                                forestGuardId = gguard.emp_id,
+                                                                applicantMobile =  formData.mobile) { Success ->
+                                                                if (Success) {
+                                                                    Log.d("Firebase", "Form files deleted successfully!")
+                                                                } else {
+                                                                    Log.e("Firebase", "Failed to delete form files.")
+                                                                }
+                                                            }
+                                                            if(code==401 || code==403){
+                                                                logoutUser(navController,mainViewModel, emp = gguard)
+                                                            }
+                                                            isUploading = false
+
+                                                            showToast = "Error: $status"
+
+                                                        }
+
+                                                        isUploading = false
                                                     }
 
 

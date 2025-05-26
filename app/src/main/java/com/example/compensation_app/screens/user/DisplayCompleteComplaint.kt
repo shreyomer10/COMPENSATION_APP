@@ -1,7 +1,11 @@
 package com.example.compensation_app.screens.user
 
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,8 +15,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,13 +26,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.compensation_app.Backend.PdfRequest
 import com.example.compensation_app.Backend.UserComplaintRetrievalForm
 import com.example.compensation_app.FireStorage.ImageRow
 import com.example.compensation_app.FireStorage.encodeFirebaseUrl
 import com.example.compensation_app.components.CompleteFormSectionCard
 import com.example.compensation_app.components.DetailRow
 import com.example.compensation_app.components.getStatusLabel
+import com.example.compensation_app.viewmodel.GuardViewModel
 import com.google.gson.Gson
 import showDownloadConfirmationDialogPDF
 
@@ -36,11 +45,14 @@ import showDownloadConfirmationDialogPDF
 @Composable
 fun RetrivalComplaintDisplayScreen(navController: NavController, encodedForm: String?) {
     val context= LocalContext.current
+    val viewModel: GuardViewModel = hiltViewModel()
+
     val gson = Gson()
     val retrivalForm = encodedForm?.let {
         gson.fromJson(it, UserComplaintRetrievalForm::class.java)
     }
     val isLoading = remember { mutableStateOf(false) }
+    var confirmDownload by remember { mutableStateOf(false) }
 
     if (retrivalForm != null) {
         //retrivalForm.documentURL = encodeFirebaseUrl(retrivalForm.documentURL)
@@ -200,17 +212,47 @@ fun RetrivalComplaintDisplayScreen(navController: NavController, encodedForm: St
 
                     item{
                         CompleteFormSectionCard(title = "Print Application Form") {
-                            if (isLoading.value) {
-                                CircularProgressIndicator() // Show loading indicator
-                            }
-                            else{
-
-                                Button(onClick = {
-                                    showDownloadConfirmationDialogPDF(context, complaintRetrievalForm = retrivalForm, isLoading = isLoading)
-                                }) {
-                                    Text("Print Application Form")
+                            Button(onClick = {
+                                confirmDownload=true
+                                if(retrivalForm.mobile!=null && retrivalForm.name !=null && retrivalForm.complaint_id!=null){
+                                    viewModel.getOrCreatePdf(
+                                        PdfRequest(
+                                            mobile = retrivalForm.mobile!!,
+                                            username = retrivalForm.name!!,
+                                            form_id = retrivalForm.complaint_id.toString(),
+                                            forestguardId = null,
+                                            is_compensation = false
+                                        )
+                                    ) { result, code ->
+                                        confirmDownload=false
+                                        when {
+                                            result.isSuccess -> {
+                                                val downloadUrl = result.getOrNull()
+                                                Log.d("PDF", "Download URL: $downloadUrl")
+                                                val intent = Intent(Intent.ACTION_VIEW).apply {
+                                                    setDataAndType(Uri.parse(downloadUrl), "application/pdf")
+                                                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                                                }
+                                                context.startActivity(intent)
+                                            }
+                                            result.isFailure -> {
+                                                val error = result.exceptionOrNull()?.message ?: "Unknown error"
+                                                Log.e("PDF", "Error: $error | Code: $code")
+                                                Toast.makeText(context, "Error: $error", Toast.LENGTH_LONG).show()
+                                            }
+                                        }
+                                    }
                                 }
+                            }) {
+                                Text("Print Application Form")
                             }
+//                            if (isLoading.value) {
+//                                CircularProgressIndicator() // Show loading indicator
+//                            }
+//                            else{
+//
+//
+//                            }
 
 
                         }
@@ -219,6 +261,19 @@ fun RetrivalComplaintDisplayScreen(navController: NavController, encodedForm: St
             }
 
 
+        }
+        if (confirmDownload) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(color = Color.Blue)
+
+                }
+            }
         }
     }
 }

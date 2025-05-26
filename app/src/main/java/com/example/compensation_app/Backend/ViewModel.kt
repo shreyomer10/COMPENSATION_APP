@@ -9,11 +9,14 @@ import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.Backend.GuardRepository
 import com.example.compensation_app.Backend.LoginRequest
 import com.example.compensation_app.Backend.LoginResponse
+import com.example.compensation_app.Backend.PdfRequest
 import com.example.compensation_app.Backend.RejectComplaintRequest
 import com.example.compensation_app.Backend.RetrivalForm
+import com.example.compensation_app.Backend.RetrivalFormShort
 import com.example.compensation_app.Backend.UpdateFormStatusResponse
 import com.example.compensation_app.Backend.UserComplaintForm
 import com.example.compensation_app.Backend.UserComplaintRetrievalForm
+import com.example.compensation_app.Backend.UserComplaintRetrievalFormShort
 import com.example.compensation_app.Backend.VerifyGuardRequest
 import com.example.compensation_app.Backend.VerifyGuardResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,7 +48,7 @@ class GuardViewModel @Inject constructor(
             guardRepository.login(empRequest, onResult)
         }
     }
-    fun refreshToken( onResult: (LoginResponse?, String?) -> Unit) {
+    fun refreshToken( onResult: (LoginResponse?, String?,Int?) -> Unit) {
 
         viewModelScope.launch(Dispatchers.IO) {
             guardRepository.refreshToken(onResult)
@@ -80,7 +83,7 @@ class GuardViewModel @Inject constructor(
         }
     }
 
-    fun newApplicationForm(form:CompensationForm,onResult: (Boolean, String?) -> Unit){
+    fun newApplicationForm(form:CompensationForm,onResult: (Boolean, String?,Int?) -> Unit){
         viewModelScope.launch (Dispatchers.IO){
             guardRepository.submitCompensationForm(form,onResult)
         }
@@ -98,11 +101,11 @@ class GuardViewModel @Inject constructor(
         }
     }
 
-    fun getFormsByID(GuardId: String, onResult: (List<RetrivalForm>?, String?) -> Unit) {
+    fun getFormsByID(GuardId: String, onResult: (List<RetrivalFormShort>?, String?,Int?) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
-            guardRepository.getCompensationFormsByGuardId(GuardId) { forms, message ->
+            guardRepository.getCompensationFormsByGuardId(GuardId) { forms, message ,code->
                 // Switching to Main thread to update UI
-                onResult(forms,message)
+                onResult(forms,message,code)
             }
         }
     }
@@ -113,23 +116,23 @@ class GuardViewModel @Inject constructor(
             }
         }
     }
-    fun fetchGuardComplaints(guardId: String, onResult: (List<UserComplaintRetrievalForm>?, String?) -> Unit) {
+    fun fetchGuardComplaints(guardId: String, onResult: (List<UserComplaintRetrievalFormShort>?, String?,Int?) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
-            guardRepository.getGuardComplaints(guardId) { complaints, error ->
+            guardRepository.getGuardComplaints(guardId) { complaints, error ,code->
                 if (error != null) {
-                    onResult(null, error)
+                    onResult(null, error,code)
                 } else {
-                    onResult(complaints, null)
+                    onResult(complaints, null,code)
                 }
             }
         }
     }
 
-    fun getFormsByDeptRangerID(deptRangerId: String, onResult: (List<RetrivalForm>?, String?) -> Unit) {
+    fun getFormsByDeptRangerID(deptRangerId: String, onResult: (List<RetrivalFormShort>?, String?, Int?) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
-            guardRepository.getCompensationFormsByDeptRangerId(deptRangerId) { forms, message ->
+            guardRepository.getCompensationFormsByDeptRangerId(deptRangerId) { forms, message,code ->
                 // Switching to Main thread to update UI
-                onResult(forms,message)
+                onResult(forms,message,code)
             }
         }
     }
@@ -138,11 +141,11 @@ class GuardViewModel @Inject constructor(
         empId: String,
         action: String,
         comments: String?,
-        onResult: (Result<UpdateFormStatusResponse>) -> Unit
+        onResult: (Result<UpdateFormStatusResponse>,Int?) -> Unit
     ) {
         viewModelScope.launch(Dispatchers.IO) {
-            guardRepository.updateFormStatus(formId, empId, action, comments) { result ->
-                onResult(result)  // Directly returning the result
+            guardRepository.updateFormStatus(formId, empId, action, comments) { result ,code->
+                onResult(result,code)  // Directly returning the result
             }
         }
     }
@@ -162,17 +165,50 @@ class GuardViewModel @Inject constructor(
         }
     }
 
-    fun rejectComplaint(
-        request: RejectComplaintRequest,
-        onResult: (Result<String>) -> Unit  // Returning only message or error
+    fun getOrCreatePdf(
+        request: PdfRequest,
+        onResult: (Result<String>, Int?) -> Unit  // Return download URL or error
     ) {
         viewModelScope.launch(Dispatchers.IO) {
-            guardRepository.rejectComplaint(request) { response, error ->
-                if (response != null) {
-                    onResult(Result.success(response.message ?: "Complaint rejected successfully"))
+            guardRepository.getOrCreatePdf(request) { response, error, code ->
+                if (response?.download_url != null) {
+                    onResult(Result.success(response.download_url), code)
                 } else {
-                    onResult(Result.failure(Exception(error ?: "Unknown error")))
+                    onResult(Result.failure(Exception(error ?: "Failed to generate or fetch PDF")), code)
                 }
+            }
+        }
+    }
+
+
+    fun rejectComplaint(
+        request: RejectComplaintRequest,
+        onResult: (Result<String>,Int?) -> Unit  // Returning only message or error
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            guardRepository.rejectComplaint(request) { response, error,code ->
+                if (response != null) {
+                    onResult(Result.success(response.message ?: "Complaint rejected successfully"),code)
+                } else {
+                    onResult(Result.failure(Exception(error ?: "Unknown error")),code)
+                }
+            }
+        }
+    }
+
+    fun getEachCompensationForm(formId: String,onResult: (RetrivalForm?, String?,Int?) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            guardRepository.getEachCompensationForm(formId) { form, message ,code->
+                // Switching to Main thread to update UI
+                onResult(form,message,code)
+            }
+        }
+    }
+    fun getEachComplaintForm(formId: String,onResult: (UserComplaintRetrievalForm?, String?,Int?) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            guardRepository.getEachComplaint(formId) { form, message ,code->
+                // Switching to Main thread to update UI
+                onResult(form,message,code)
             }
         }
     }

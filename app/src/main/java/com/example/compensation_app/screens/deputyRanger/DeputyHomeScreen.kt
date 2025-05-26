@@ -44,10 +44,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.compensation_app.Backend.RetrivalForm
+import com.example.compensation_app.Backend.RetrivalFormShort
 import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.Navigation.NavigationScreens
 import com.example.compensation_app.Navigation.SecureStorage
 import com.example.compensation_app.Navigation.clearLoginStatus
+import com.example.compensation_app.Navigation.logoutUser
 import com.example.compensation_app.components.DetailRow
 import com.example.compensation_app.components.SignOut
 import com.example.compensation_app.components.TokenCountdownDisplay
@@ -66,8 +68,6 @@ import java.nio.charset.StandardCharsets
 
 @Composable
 fun DeputyHomeScreen(navController: NavController) {
-
-
 
     val context= LocalContext.current
     // Drawer state
@@ -92,38 +92,58 @@ fun DeputyHomeScreen(navController: NavController) {
             Circle1 = "",
             roll = "guard",
             subdivision = "",
-            division = "", range_ = "", beat = 0))
+            division = "", range_ = "", beat = ""))
     }
-    mainViewModel.GetGuard {
-        if (it != null) {
-            emp=it
+    LaunchedEffect (Unit){
+        mainViewModel.GetGuard {
+            if (it != null) {
+                emp=it
+            }
         }
     }
-    var Forms by remember { mutableStateOf<List<RetrivalForm>>(emptyList()) }
-    var PendingForYou by remember { mutableStateOf<List<RetrivalForm>>(emptyList()) }
-    var Pending by remember { mutableStateOf<List<RetrivalForm>>(emptyList()) }
-    var Accepted by remember { mutableStateOf<List<RetrivalForm>>(emptyList()) }
-    var Rejected by remember { mutableStateOf<List<RetrivalForm>>(emptyList()) }
+
+    var Forms by remember { mutableStateOf<List<RetrivalFormShort>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }  // Track loading state
+    LaunchedEffect(Unit) {
+        mainViewModel.getAllCompensationShortCache {
+            isLoading=false
+            Log.d("Forms from MainViewModel", "PrevApplicationScreen: $it")
+            Forms=it
+        }
+    }
+
+    var PendingForYou by remember { mutableStateOf<List<RetrivalFormShort>>(emptyList()) }
+    var Pending by remember { mutableStateOf<List<RetrivalFormShort>>(emptyList()) }
+    var Accepted by remember { mutableStateOf<List<RetrivalFormShort>>(emptyList()) }
+    var Rejected by remember { mutableStateOf<List<RetrivalFormShort>>(emptyList()) }
 
 
 
-    LaunchedEffect(emp.emp_id) {
-        if (emp.emp_id.isNotEmpty()) {
-            viewModel.getFormsByDeptRangerID(deptRangerId = emp.emp_id) { forms, message ->
+
+    LaunchedEffect(Forms.isEmpty() && !isLoading) {
+        if (emp.emp_id.isNotEmpty() && Forms.isEmpty() && !isLoading) {
+            isLoading=true
+            viewModel.getFormsByDeptRangerID(deptRangerId = emp.emp_id) { forms, message,code ->
                 isLoading=false
-                if (!forms.isNullOrEmpty()) {
+                if (forms != null && forms.isNotEmpty()) {
+                    mainViewModel.addCompensationShortCache(forms = forms)
+                    Log.d("Initiasl", "PrevApplicationScreen: $forms")
                     Forms = forms
-                    PendingForYou = forms.filter { it.status == "2" }
-                    Pending = forms.filter { it.status in arrayOf("3", "4", "5") }
-                    Accepted = forms.filter { it.status == "6" }
-                    Rejected = forms.filter { it.status == "-1" }
+
+                    Log.d("Forms", "Fetched Forms: $Forms")
                 } else {
+                    if (code==401 || code ==403){
+                        logoutUser(navController = navController, mainViewModel = mainViewModel, emp = emp)
+                    }
                     Log.d("Forms", "No forms found or error: $message")
                 }
             }
         }
     }
+    PendingForYou = Forms.filter { it.status == "2" }
+    Pending = Forms.filter { it.status in arrayOf("3", "4", "5") }
+    Accepted = Forms.filter { it.status == "6" }
+    Rejected = Forms.filter { it.status == "-1" }
     Log.d("ALL Forms ", "DeputyHomeScreen: $Forms")
     Log.d("Pendingg for you", "DeputyHomeScreen: $PendingForYou")
     Log.d("Rejected maal", "DeputyHomeScreen: $Rejected")
@@ -149,7 +169,8 @@ fun DeputyHomeScreen(navController: NavController) {
     }
     ModalNavigationDrawer(
         drawerContent = {
-            ModalDrawerSheet(modifier = Modifier.fillMaxWidth(0.8f)
+            ModalDrawerSheet(modifier = Modifier
+                .fillMaxWidth(0.8f)
                 .background(Color.White),
                 //drawerContainerColor = Color(0xFFBB86FC)
             ) {
@@ -190,13 +211,26 @@ fun DeputyHomeScreen(navController: NavController) {
                     Button(
                         onClick = {
                             isLoading = true
-                            viewModel.refreshToken { response, error ->
+                            viewModel.refreshToken { response, error , code ->
                                 isLoading = false
                                 if (response != null) {
+
+
                                     Toast.makeText(context, response.message, Toast.LENGTH_SHORT).show()
                                     emp = response.employee!!
                                     response.token?.let { SecureStorage.saveToken(context, it) }
+                                    mainViewModel.deleteCompensationShortCache()
+                                    mainViewModel.deleteComplaintShortCache()
+
+
+
                                 } else {
+                                    if(code==401 || code ==403){
+                                        logoutUser(
+                                            navController = navController,
+                                            mainViewModel = mainViewModel,
+                                            emp = emp)
+                                    }
                                     Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
                                 }
                             }
@@ -249,12 +283,15 @@ fun DeputyHomeScreen(navController: NavController) {
                             TextButton(
                                 onClick = {
                                     showLogoutDialog = false
-                                    clearLoginStatus(context = context)
-                                    SecureStorage.clearToken(context)
-                                    mainViewModel.deleteEmp(emp = emp)
-                                    navController.navigate(NavigationScreens.LoginScreen.name) {
-                                        popUpTo(NavigationScreens.AppHome.name) { inclusive = true }
-                                    }
+                                    logoutUser(navController = navController,
+                                        mainViewModel=mainViewModel,
+                                        emp = emp)
+//                                    clearLoginStatus(context = context)
+//                                    SecureStorage.clearToken(context)
+//                                    mainViewModel.deleteEmp(emp = emp)
+//                                    navController.navigate(NavigationScreens.LoginScreen.name) {
+//                                        popUpTo(NavigationScreens.AppHome.name) { inclusive = true }
+//                                    }
                                 }
                             ) {
                                 Text("Yes, Logout", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
@@ -314,7 +351,9 @@ fun DeputyHomeScreen(navController: NavController) {
                 // Center the buttons vertically
                 Button(
                     onClick = { navController.navigate(NavigationScreens.PendingForYouScreen.name + "/$encodedEmpJson/$encodedPendingForYou") },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     colors = ButtonDefaults.buttonColors(Color(0xFF0A66C2))
                 ) {
                     Text(text = "Pending (For You)", color = Color.White)
@@ -324,7 +363,9 @@ fun DeputyHomeScreen(navController: NavController) {
 
                 Button(
                     onClick = { navController.navigate(NavigationScreens.PendingScreen.name + "/$encodedEmpJson/$encodedPending") },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     colors = ButtonDefaults.buttonColors(Color(0xFF0A66C2))
                 ) {
                     Text(text = "Pending", color = Color.White)
@@ -334,7 +375,9 @@ fun DeputyHomeScreen(navController: NavController) {
 
                 Button(
                     onClick = { navController.navigate(NavigationScreens.AcceptedScreen.name + "/$encodedEmpJson/$encodedAccepted") },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     colors = ButtonDefaults.buttonColors(Color(0xFF0A66C2))
                 ) {
                     Text(text = "Accepted", color = Color.White)
@@ -344,7 +387,9 @@ fun DeputyHomeScreen(navController: NavController) {
 
                 Button(
                     onClick = { navController.navigate(NavigationScreens.RejectedScreen.name + "/$encodedEmpJson/$encodedRejected") },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     colors = ButtonDefaults.buttonColors(Color(0xFFFF4C4C))
                 ) {
                     Text(text = "Rejected", color = Color.White)

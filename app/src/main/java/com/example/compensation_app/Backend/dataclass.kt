@@ -17,13 +17,25 @@ data class emp(
     val division: String,
     val subdivision: String,
     val range_: String,
-    val beat: Int
-)
+    val beat: String
+){
+    companion object {
+        fun default() = emp(emp_id = "",
+            mobile_number = "",
+            Name = "",
+            Circle_CG = "",
+            Circle1 = "",
+            roll = "guard",
+            subdivision = "",
+            division = "", range_ = "", beat = "")
+    }
+}
 data class LoginRequest(
     val emp_id: String,
     val roll: String,
     val mobile_number: String,
-    val password: String
+    val password: String,
+    val is_app:Boolean=true
 )
 
 data class LoginResponse(
@@ -50,7 +62,20 @@ data class VerifyGuardResponse(
     val message: String,
    // val employee: emp? // Use the Guard class to represent employee details if applicable
 )
+@Entity(tableName = "CompensationShortCache")
+data class RetrivalFormShort(
+    @PrimaryKey
+    val formID: Int?,
+    val submissionDateTime: String?,
+    val forestGuardID: String?,
+    val complaint_id: String?,
+    val applicantName: String?,
+    val mobile: String?,
+    val incidentDate: String?,
+    val statusHistory: List<StatusUpdate>?,
+    val status: String?,
 
+)
 data class RetrivalForm(
     val formID: Int?,
     val submissionDateTime: String?,
@@ -60,7 +85,7 @@ data class RetrivalForm(
     val age: Int?,
     val fatherSpouseName: String?,
     val mobile: String?,
-    var email:String?,
+    var email: String?,
     val animalName: String?,
     val incidentDate: String?,
     val additionalDetails: String?,
@@ -69,12 +94,12 @@ data class RetrivalForm(
     val division: String,
     val subdivision: String,
     val range_: String,
-    val beat: Int,
+    val beat: String,
     val address: String?,
     val cropType: String?,
     val cerealCrop: String?,
     val cropDamageArea: Double?,
-    var cropDamageAmount:Double?,
+    var cropDamageAmount: Double?,
 
     var cropdamagePhoto: String?,
     var nocReport: String?,
@@ -83,7 +108,7 @@ data class RetrivalForm(
 
     val fullHouseDamage: String?,
     val partialHouseDamage: String?,
-    var houseDamageAmount:Double?,
+    var houseDamageAmount: Double?,
 
     var housedamagePhoto1: String?,
     var housedamagePhoto2: String?,
@@ -91,24 +116,24 @@ data class RetrivalForm(
 
     val numberOfCattlesDied: Int?,
     val estimatedCattleAge: Int?,
-    var catleInjuryAmount:Double?,
-    var cattlePhoto: String ?,
+    var catleInjuryAmount: Double?,
+    var cattlePhoto: String?,
     var vasCertificate: String?,
     val humanDeathVictimName: String?,
     val numberOfDeaths: Int?,
     val temporaryInjuryDetails: String?,
     val permanentInjuryDetails: String?,
-    var humanDeathAmount:Double?,
-    var humanPhoto1: String ?,
-    var humanPhoto2: String ?,
+    var humanDeathAmount: Double?,
+    var humanPhoto1: String?,
+    var humanPhoto2: String?,
     var deathCertificate: String?,
     var sarpanchReport: String?,
     var pmReport: String?,
 
-    var humanInjuryAmount:Double?,
+    var humanInjuryAmount: Double?,
 
-    var humanInjuryPhoto: String ?,
-    var medicalCertificate: String ?,
+    var humanInjuryPhoto: String?,
+    var medicalCertificate: String?,
     val bankName: String?,
     val ifscCode: String?,
     val branchName: String?,
@@ -116,16 +141,89 @@ data class RetrivalForm(
     val accountNumber: String?,
     val panNumber: String?,
     val aadhaarNumber: String?,
-    val totalCompensationAmount:Double?,
+    val totalCompensationAmount: Double?,
     val statusHistory: List<StatusUpdate>?,
     val status: String?,
     var idProof: String?,
-    var photoUrl:String?,
-    var eSignUrl:String?,
+    var photoUrl: String?,
+    var eSignUrl: String?,
     val verifiedBy: String?,
     val paymentProcessedBy: String?,
     val comments: String?
-)
+) {
+    companion object {
+        fun default() = RetrivalForm(
+            formID = 0,
+            submissionDateTime = "",
+            forestGuardID = "",
+            complaint_id = "",
+            applicantName = "",
+            age = 0,
+            fatherSpouseName = "",
+            mobile = "",
+            email = "",
+            animalName = "",
+            incidentDate = "",
+            additionalDetails = "",
+            Circle_CG = "",
+            Circle1 = "",
+            division = "",
+            subdivision = "",
+            range_ = "",
+            beat = "",
+            address = "",
+            cropType = "",
+            cerealCrop = "",
+            cropDamageArea = 0.0,
+            cropDamageAmount = 0.0,
+            cropdamagePhoto = "",
+            nocReport = "",
+            landOwnershipReport = "",
+            rorReport = "",
+            fullHouseDamage = "",
+            partialHouseDamage = "",
+            houseDamageAmount = 0.0,
+            housedamagePhoto1 = "",
+            housedamagePhoto2 = "",
+            propertyOwnerReport = "",
+            numberOfCattlesDied = 0,
+            estimatedCattleAge = 0,
+            catleInjuryAmount = 0.0,
+            cattlePhoto = "",
+            vasCertificate = "",
+            humanDeathVictimName = "",
+            numberOfDeaths = 0,
+            temporaryInjuryDetails = "",
+            permanentInjuryDetails = "",
+            humanDeathAmount = 0.0,
+            humanPhoto1 = "",
+            humanPhoto2 = "",
+            deathCertificate = "",
+            sarpanchReport = "",
+            pmReport = "",
+            humanInjuryAmount = 0.0,
+            humanInjuryPhoto = "",
+            medicalCertificate = "",
+            bankName = "",
+            ifscCode = "",
+            branchName = "",
+            accountHolderName = "",
+            accountNumber = "",
+            panNumber = "",
+            aadhaarNumber = "",
+            totalCompensationAmount = 0.0,
+            statusHistory = emptyList(),
+            status = "",
+            idProof = "",
+            photoUrl = "",
+            eSignUrl = "",
+            verifiedBy = "",
+            paymentProcessedBy = "",
+            comments = ""
+        )
+    }
+}
+
 data class EmailRequest(
     val email: String,
     val message: String
@@ -150,21 +248,25 @@ data class FullComplaintResponse(
 )
 data class GuardComplaintResponse(
     val found: String,  // Always "yes" or "no", so non-nullable
-    val complaints: List<UserComplaintRetrievalForm>? = null
+    val complaints: List<UserComplaintRetrievalFormShort> ?
 )
 
 data class UserComplaintRetrievalForm(
     var complaint_id: String?,
-    var SubmissionDateTime:String?,
+    var SubmissionDateTime: String?,
     var name: String?,
-    var age: String ?,
+    var age: String?,
     var fatherOrSpouseName: String?,
     var mobile: String?,
-    var email:String?,
+    var email: String?,
+    var adhaar: String?,
+
     var animalList: String?,
     var damageDate: String?,
     var additionalDetails: String?,
     var address: String?,
+    var Circle_CG: String?,
+
     var division: String?,
     var subdivision: String?,
     var range_: String?,
@@ -172,19 +274,70 @@ data class UserComplaintRetrievalForm(
     var beat: String?,
     var cropType: String?,
     var cerealCrop: String?,
-    var fullHousesDamaged: String ?,
+    var fullHousesDamaged: String?,
     var partialHousesDamaged: String?,
     var cattleInjuryNumber: String?,
-    var cattleInjuryEstimatedAge: String ?,
-    var humanDeathVictimNames: String ?,
+    var cattleInjuryEstimatedAge: String?,
+    var humanDeathVictimNames: String?,
     var humanDeathNumber: String?,
     var temporaryInjuryDetails: String?,
     var permanentInjuryDetails: String?,
-    var photoUrl:String?,
-    var eSignUrl:String?,
-    var incidentUrl1:String?,
-    var incidentUrl2:String?,
-    var incidentUrl3:String?,
+    var photoUrl: String?,
+    var eSignUrl: String?,
+    var incidentUrl1: String?,
+    var incidentUrl2: String?,
+    var incidentUrl3: String?,
+    val status: String?,
+    val statusHistory: MutableList<StatusUpdate>?
+) {
+    companion object {
+        fun default() = UserComplaintRetrievalForm(
+            complaint_id = 0.toString(),
+            SubmissionDateTime = "",
+            name = "",
+            age = "",
+            fatherOrSpouseName = "",
+            mobile = "",
+            email = "",
+            adhaar = "",
+            animalList = "",
+            damageDate = "",
+            additionalDetails = "",
+            address = "",
+            Circle_CG = "",
+            division = "",
+            subdivision = "",
+            range_ = "",
+            circle1 = "",
+            beat = "",
+            cropType = "",
+            cerealCrop = "",
+            fullHousesDamaged = "",
+            partialHousesDamaged = "",
+            cattleInjuryNumber = "",
+            cattleInjuryEstimatedAge = "",
+            humanDeathVictimNames = "",
+            humanDeathNumber = "",
+            temporaryInjuryDetails = "",
+            permanentInjuryDetails = "",
+            photoUrl = "",
+            eSignUrl = "",
+            incidentUrl1 = "",
+            incidentUrl2 = "",
+            incidentUrl3 = "",
+            status = "",
+            statusHistory = mutableListOf()
+        )
+    }
+}
+@Entity(tableName = "ComplaintShortCache")
+data class UserComplaintRetrievalFormShort(
+    @PrimaryKey
+    var complaint_id: String="",
+    var SubmissionDateTime:String?,
+    var name: String?,
+    var mobile: String?,
+    var damageDate: String?,
     val status: String?,
     val statusHistory: MutableList<StatusUpdate>?,
 
@@ -198,11 +351,14 @@ data class UserComplaintForm(
     var fatherOrSpouseName: String = "",
     var mobile: String = "",
     var email:String="",
+    var adhaar:String="",
     var animalList: String = "",
     var damageDate: String = "",
     var additionalDetails: String = "",
 
     var address: String = "",
+    var Circle_CG: String="",
+
     var division: String="",
     var subdivision: String="",
     var range_: String="",
@@ -240,12 +396,15 @@ data class UserComplaintForm(
 
 fun validateComplaint(Form:UserComplaintForm): Boolean {
 
+
     return Form.name.isNotEmpty() &&
             Form.age!="0" &&
             Form.age.isNotEmpty() &&
             Form.fatherOrSpouseName.isNotEmpty() &&
             Form.mobile.isNotEmpty() &&
             Form.email.isNotEmpty() &&
+            Form.adhaar.isNotEmpty() &&
+            Form.Circle_CG.isNotEmpty() &&
             Form.animalList.isNotEmpty() &&
             Form.damageDate.isNotEmpty() &&
             Form.address.isNotEmpty() &&
@@ -347,7 +506,7 @@ data class CompensationForm(
     var division: String,
     var subdivision: String,
     var range_: String,
-    var beat: Int,
+    var beat: String,
     val address: String,
     val cropType: String,
     val cerealCrop: String,
@@ -462,3 +621,15 @@ data class UpdateFormStatusResponse(
     val new_status: String,
     val verified_by: String
 )
+data class PdfRequest(
+    val mobile: String,
+    val username: String,
+    val forestguardId: String?, // Nullable, required only if is_compensation is true
+    val form_id: String,
+    val is_compensation: Boolean
+)
+data class PdfResponse(
+    val download_url: String?,
+    val error:String?
+)
+

@@ -25,13 +25,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.compensation_app.Backend.RetrivalForm
+import com.example.compensation_app.Backend.RetrivalFormShort
 import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.screens.guard.ApplicationItem
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FormScreen(navController: NavController, name:String, emp: emp?, forms:List<RetrivalForm>?){
+fun FormScreen(navController: NavController, name:String, emp: emp?, forms:List<RetrivalFormShort>?){
     Column {
         androidx.compose.material3.TopAppBar(
             title = {

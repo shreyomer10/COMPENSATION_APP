@@ -1,4 +1,6 @@
 package com.example.compensation_app.screens.user
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
@@ -15,8 +17,10 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.compensation_app.Backend.PdfRequest
 import com.example.compensation_app.Backend.UserComplaintForm
 import com.example.compensation_app.FireStorage.ImageRow
 import com.example.compensation_app.FireStorage.openPdfWithIntent
@@ -59,6 +64,7 @@ fun DisplaySuccessScreen(navController: NavController,formData: UserComplaintFor
             }
         }
     }
+    var confirmDownload by remember { mutableStateOf(false) }
 
     val context= LocalContext.current
     val isLoading = remember { mutableStateOf(false) }
@@ -131,12 +137,52 @@ fun DisplaySuccessScreen(navController: NavController,formData: UserComplaintFor
         }
         else{
             Button(onClick = {
-                showDownloadConfirmationDialogPDF(context,null, complaint = formData, isLoading = isLoading)
+                confirmDownload=true
+                viewModel.getOrCreatePdf(
+                    PdfRequest(
+                        mobile = formData.mobile,
+                        username = formData.name,
+                        form_id = complaintId.toString(),
+                        forestguardId = null,
+                        is_compensation = false
+                    )
+                ) { result, code ->
+                    confirmDownload=false
+                    when {
+                        result.isSuccess -> {
+                            val downloadUrl = result.getOrNull()
+                            Log.d("PDF", "Download URL: $downloadUrl")
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                setDataAndType(Uri.parse(downloadUrl), "application/pdf")
+                                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                            }
+                            context.startActivity(intent)
+                        }
+                        result.isFailure -> {
+                            val error = result.exceptionOrNull()?.message ?: "Unknown error"
+                            Log.e("PDF", "Error: $error | Code: $code")
+                            Toast.makeText(context, "Error: $error", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
             }) {
                 Text("Print Application Form")
             }
         }
 
 
+    }
+    if (confirmDownload) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                CircularProgressIndicator(color = Color.Blue)
+
+            }
+        }
     }
 }

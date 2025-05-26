@@ -70,6 +70,12 @@ dependencies {
     kapt ("androidx.room:room-compiler:2.6.1") // Use kapt for Kotlin
     implementation ("androidx.room:room-ktx:2.6.1") // Kotlin Extensions
 
+
+//    implementation ("net.zetetic:android-database-sqlcipher:4.5.4")
+//    implementation ("androidx.sqlite:sqlite-android:2.5.0")
+
+    
+
 //location
   //  implementation ("com.google.android.gms:play-services-maps:18.1.0")
     implementation ("com.google.android.gms:play-services-location:21.0.1")

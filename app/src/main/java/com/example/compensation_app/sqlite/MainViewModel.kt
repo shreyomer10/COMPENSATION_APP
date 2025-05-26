@@ -6,6 +6,8 @@ import android.view.View
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.compensation_app.Backend.FormData
+import com.example.compensation_app.Backend.RetrivalFormShort
+import com.example.compensation_app.Backend.UserComplaintRetrievalFormShort
 import com.example.compensation_app.Backend.emp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -113,5 +115,78 @@ class MainViewModel@Inject constructor(private val offlineRepsitory: OfflineReps
 
         }
     }
+
+    fun addCompensationShortCache(forms:List<RetrivalFormShort>){
+        viewModelScope.launch {
+            try{
+                offlineRepsitory.addCompensationShortCache(forms)
+            }
+            catch (e:Exception){
+                Log.d("Sorry", "ADd: Can not add")
+
+            }
+        }
+    }
+
+    fun deleteCompensationShortCache(){
+        viewModelScope.launch {
+            try{
+                offlineRepsitory.deleteCompensationShortCache()
+            }
+            catch (e:Exception){
+                Log.d("Sorry", "Delete: Can not delete")
+            }
+
+        }
+    }
+    fun getAllCompensationShortCache(callback: (List<RetrivalFormShort>) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val forms = offlineRepsitory.getAllCompensationShortCache()
+                callback(forms)
+            } catch (e: Exception) {
+                callback(emptyList())
+            }
+
+            // Pass the list of teachers to the callback
+        }
+    }
+
+    fun addCompelaintShortCache(forms:List<UserComplaintRetrievalFormShort>){
+        viewModelScope.launch {
+            try{
+                offlineRepsitory.addComplaintShortCache(forms)
+            }
+            catch (e:Exception){
+                Log.d("Sorry", "ADd: Can not add")
+
+            }
+        }
+    }
+
+    fun deleteComplaintShortCache(){
+        viewModelScope.launch {
+            try{
+                offlineRepsitory.deleteComplaintShortCache()
+            }
+            catch (e:Exception){
+                Log.d("Sorry", "Delete: Can not delete")
+            }
+
+        }
+    }
+    fun getAllCompelaintShortCache(callback: (List<UserComplaintRetrievalFormShort>) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val forms = offlineRepsitory.getAllComplaintShortCache()
+                callback(forms)
+            } catch (e: Exception) {
+                callback(emptyList())
+            }
+
+            // Pass the list of teachers to the callback
+        }
+    }
+
 
 }

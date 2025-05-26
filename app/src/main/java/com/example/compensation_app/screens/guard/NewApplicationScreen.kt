@@ -47,6 +47,7 @@ import com.example.compensation_app.FireStorage.ImagePickerButton
 import com.example.compensation_app.FireStorage.SelectPdfButton
 import com.example.compensation_app.FireStorage.deleteFormFiles
 import com.example.compensation_app.FireStorage.uploadFormFiles
+import com.example.compensation_app.Navigation.logoutUser
 import com.example.compensation_app.components.DamageDetailsDropdown
 import com.example.compensation_app.components.DatePickerField
 import com.example.compensation_app.components.InputField
@@ -73,19 +74,30 @@ import java.util.Locale
 @RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewApplication(navController: NavController,guard: String?) {
+fun NewApplication(navController: NavController) {
     var formData by remember { mutableStateOf(FormData()) }
+    val mainViewModel:MainViewModel= hiltViewModel()
 
-
-    val gson = Gson()
-    val gguard = guard?.let {
-        gson.fromJson(it, emp::class.java)
+    var gguard by remember {
+        mutableStateOf<emp>(emp.default())
     }
+    LaunchedEffect (Unit){
+        mainViewModel.GetGuard {
+            if (it != null) {
+                gguard=it
+            }
+        }
+
+    }
+
+//    val gson = Gson()
+//    val gguard = guard?.let {
+//        gson.fromJson(it, emp::class.java)
+//    }
     var showConfirmationDialog by remember { mutableStateOf(false) }
     var DraftSaver by remember { mutableStateOf(false) }
     // Data class instance to hold form data.visibility = View.GONE
     val viewModel:GuardViewModel= hiltViewModel()
-    val mainViewModel:MainViewModel= hiltViewModel()
 
     if(gguard!=null){
         Log.d("Final 111", "NewApplication:${gguard.emp_id} ")
@@ -705,7 +717,7 @@ fun NewApplication(navController: NavController,guard: String?) {
 
                                                 val form = CompensationForm(
                                                     forestGuardID = gguard.emp_id,
-                                                    complaint_id = null,
+                                                    complaint_id = formData.complaint_id,
                                                     applicantName = formData.name,
                                                     age = formData.age.toInt(),
                                                     fatherSpouseName = formData.fatherOrSpouseName,
@@ -789,15 +801,15 @@ fun NewApplication(navController: NavController,guard: String?) {
                                                     Log.d("validity", "NewApplication: Valid hai")
 
 
-                                                    viewModel.newApplicationForm(form = form) { success, status ->
-                                                          // ✅ Hide loading when done
+                                                    viewModel.newApplicationForm(form = form) { success, status ,code->
+                                                        // ✅ Hide loading when done
 
                                                         if (success) {
                                                             showToast = "Form submitted successfully!"
                                                             navController.popBackStack()
                                                         }
                                                         else {
-                                                            showToast = "Error: $status"
+
                                                             Log.d("error", "NewApplication: $status")
                                                             deleteFormFiles(
                                                                 forestGuardId = gguard.emp_id,
@@ -808,7 +820,15 @@ fun NewApplication(navController: NavController,guard: String?) {
                                                                     Log.e("Firebase", "Failed to delete form files.")
                                                                 }
                                                             }
+                                                            if(code==401 || code==403){
+                                                                logoutUser(navController,mainViewModel, emp = gguard)
+                                                            }
+                                                            isUploading = false
+
+                                                            showToast = "Error: $status"
+
                                                         }
+
                                                         isUploading = false
                                                     }
 

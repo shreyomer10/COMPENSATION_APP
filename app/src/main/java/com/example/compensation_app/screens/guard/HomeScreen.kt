@@ -42,6 +42,7 @@ import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.Navigation.NavigationScreens
 import com.example.compensation_app.Navigation.SecureStorage
 import com.example.compensation_app.Navigation.clearLoginStatus
+import com.example.compensation_app.Navigation.logoutUser
 import com.example.compensation_app.Navigation.saveLoginStatus
 import com.example.compensation_app.R
 import com.example.compensation_app.components.SignOut
@@ -79,21 +80,26 @@ fun HomeScreen(navController: NavController) {
     val mobileNumber = auth.currentUser?.phoneNumber
     val formattedNumber = mobileNumber?.replace("+91", "") ?: ""
     Log.d("format", "$formattedNumber")
+//    var gguard by remember {
+//        mutableStateOf<emp>(emp(emp_id = "",
+//            mobile_number = "",
+//            Name = "",
+//            Circle_CG = "",
+//            Circle1 = "",
+//            roll = "guard",
+//            subdivision = "",
+//            division = "", range_ = "", beat = ""))
+//    }
     var gguard by remember {
-        mutableStateOf<emp>(emp(emp_id = "",
-            mobile_number = "",
-            Name = "",
-            Circle_CG = "",
-            Circle1 = "",
-            roll = "guard",
-            subdivision = "",
-            division = "", range_ = "", beat = 0))
+        mutableStateOf<emp>(emp.default())
     }
-
-    mainViewModel.GetGuard {
-        if (it != null) {
-            gguard=it
+    LaunchedEffect (Unit){
+        mainViewModel.GetGuard {
+            if (it != null) {
+                gguard=it
+            }
         }
+
     }
 
     Log.d("Final", "NewApplication:${gguard.emp_id} ")
@@ -105,7 +111,8 @@ fun HomeScreen(navController: NavController) {
     }
     ModalNavigationDrawer(
         drawerContent = {
-            ModalDrawerSheet(modifier = Modifier.fillMaxWidth(0.8f)
+            ModalDrawerSheet(modifier = Modifier
+                .fillMaxWidth(0.8f)
                 .background(Color.White),
                 //drawerContainerColor = Color(0xFFBB86FC)
             ) {
@@ -146,13 +153,26 @@ fun HomeScreen(navController: NavController) {
                     Button(
                         onClick = {
                             isLoading = true
-                            viewModel.refreshToken { response, error ->
+                            viewModel.refreshToken { response, error , code ->
                                 isLoading = false
                                 if (response != null) {
+
+
                                     Toast.makeText(context, response.message, Toast.LENGTH_SHORT).show()
                                     gguard = response.employee!!
                                     response.token?.let { SecureStorage.saveToken(context, it) }
+                                    mainViewModel.deleteCompensationShortCache()
+                                    mainViewModel.deleteComplaintShortCache()
+
+
+
                                 } else {
+                                    if(code==401 || code ==403){
+                                        logoutUser(
+                                            navController = navController,
+                                            mainViewModel = mainViewModel,
+                                            emp = gguard)
+                                    }
                                     Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
                                 }
                             }
@@ -205,12 +225,16 @@ fun HomeScreen(navController: NavController) {
                             TextButton(
                                 onClick = {
                                     showLogoutDialog = false
-                                    clearLoginStatus(context = context)
-                                    SecureStorage.clearToken(context)
-                                    mainViewModel.deleteEmp(emp = gguard)
-                                    navController.navigate(NavigationScreens.LoginScreen.name) {
-                                        popUpTo(NavigationScreens.AppHome.name) { inclusive = true }
-                                    }
+                                    logoutUser(navController = navController,
+                                        mainViewModel=mainViewModel,
+                                        emp = gguard)
+//                                    clearLoginStatus(context = context)
+//                                    SecureStorage.clearToken(context)
+//                                    mainViewModel.deleteEmp(emp = gguard)
+//                                    mainViewModel.deleteCompensationShortCache()
+//                                    navController.navigate(NavigationScreens.LoginScreen.name) {
+//                                        popUpTo(NavigationScreens.AppHome.name) { inclusive = true }
+//                                    }
                                 }
                             ) {
                                 Text("Yes, Logout", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
@@ -261,8 +285,9 @@ fun HomeScreen(navController: NavController) {
 
 
                 Button(
-                    onClick = { navController.navigate(NavigationScreens.NewApplicationScreen.name+"/$encodedGuardJson")/* Navigate to Submit New Application Screen */ },
-                    modifier = Modifier.fillMaxWidth()
+                    onClick = { navController.navigate(NavigationScreens.NewApplicationScreen.name)/* Navigate to Submit New Application Screen */ },
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     colors = ButtonDefaults.buttonColors(Color(0xFF0A66C2))
                 ) {
@@ -274,7 +299,9 @@ fun HomeScreen(navController: NavController) {
 
                 Button(
                     onClick = { navController.navigate(NavigationScreens.ComplaintApplicationGuard.name+"/$encodedGuardJson")/* Navigate to Submit New Application Screen */ },
-                    modifier = Modifier.fillMaxWidth() .padding(horizontal = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     colors = ButtonDefaults.buttonColors(Color(0xFF0A66C2))
                 ) {
                     Text(text = "Complaint Applications", color = Color.White)
@@ -284,7 +311,9 @@ fun HomeScreen(navController: NavController) {
 
                 Button(
                     onClick = { navController.navigate(NavigationScreens.DraftApplicationScreen.name+"/$encodedGuardJson")/* Navigate to Draft Applications Screen */ },
-                    modifier = Modifier.fillMaxWidth() .padding(horizontal = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     colors = ButtonDefaults.buttonColors(Color(0xFF0A66C2))
                 ) {
                     Text(text = "Draft Applications", color = Color.White)
@@ -294,7 +323,9 @@ fun HomeScreen(navController: NavController) {
 
                 Button(
                     onClick = { navController.navigate(NavigationScreens.PrevApplicationScreen.name+"/$encodedGuardJson")/* Navigate to Previous Applications Screen */ },
-                    modifier = Modifier.fillMaxWidth() .padding(horizontal = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     colors = ButtonDefaults.buttonColors(Color(0xFF0A66C2))
                 ) {
                     Text(text = "Previous Applications", color = Color.White)

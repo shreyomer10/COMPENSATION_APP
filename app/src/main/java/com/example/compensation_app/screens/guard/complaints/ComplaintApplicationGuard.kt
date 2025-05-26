@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,8 +40,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.Backend.UserComplaintRetrievalForm
+import com.example.compensation_app.Backend.UserComplaintRetrievalFormShort
 import com.example.compensation_app.Navigation.NavigationScreens
+import com.example.compensation_app.Navigation.logoutUser
 import com.example.compensation_app.components.getStatusLabel
+import com.example.compensation_app.sqlite.MainViewModel
 import com.example.compensation_app.viewmodel.GuardViewModel
 import com.google.gson.Gson
 import java.net.URLEncoder
@@ -50,31 +54,59 @@ import java.nio.charset.StandardCharsets
 fun ComplaintApplicationScreen(navController: NavController,guard: String?) {
     //val text="Guard"
     val gson = Gson()
-    val gguard = guard?.let {
-        gson.fromJson(it, emp::class.java)
+
+    val mainViewModel: MainViewModel = hiltViewModel()
+    var gguard by remember {
+        mutableStateOf<emp>(emp.default())
+    }
+    LaunchedEffect (Unit){
+        mainViewModel.GetGuard {
+            if (it != null) {
+                gguard=it
+            }
+        }
+
     }
     val viewModel: GuardViewModel = hiltViewModel()
     var isLoading by remember { mutableStateOf(true) }  // Track loading state
+    var forms by remember { mutableStateOf<List<UserComplaintRetrievalFormShort>>(emptyList()) }
 
-    var Forms by remember {
-        mutableStateOf<List<UserComplaintRetrievalForm>>(emptyList())
-    }
-    if (gguard!=null)
-        if (gguard.emp_id.isNotEmpty()) {
-
-            viewModel.fetchGuardComplaints(guardId = gguard.emp_id){ forms,status->
-                isLoading=false
-                if (forms != null && forms.isNotEmpty()) {
-
-                    Log.d("Initiasl", "PrevApplicationScreen: $forms")
-                    Forms = forms
-                    Log.d("Forms", "Fetched Forms: $Forms")
-                } else {
-                    Log.d("Forms", "No forms found or error: $status")
-                }
+    LaunchedEffect(gguard) {
+        if (gguard != null && gguard.emp_id.isNotEmpty()) {
+            // Step 1: Load cached complaints
+            isLoading = true
+            mainViewModel.getAllCompelaintShortCache { cachedForms ->
+                forms = cachedForms
             }
+            // Wait for a moment to ensure cachedForms updated
+            // (getAllCompelaintShortCache callback is async, so better to suspend or redesign it)
+            // Assuming getAllCompelaintShortCache can be made suspend, or use a suspend version:
+            // For example:
+            // val cachedForms = mainViewModel.getAllCompelaintShortCacheSuspend()
+            // forms = cachedForms
 
+            // Step 2: After cache loading done (simulate with delay if needed)
+            // or better: use a state or suspend function to await completion
+
+            // If cache empty, fetch fresh from API
+            if (forms.isEmpty()) {
+                viewModel.fetchGuardComplaints(gguard.emp_id) { fetchedForms, status, code ->
+                    isLoading = false
+                    if (!fetchedForms.isNullOrEmpty()) {
+                        forms = fetchedForms
+                        mainViewModel.addCompelaintShortCache(fetchedForms)
+                    } else if (code == 401 || code == 403) {
+                        logoutUser(navController, mainViewModel, gguard)
+                    }
+                }
+            } else {
+                isLoading = false
+            }
+        } else {
+            isLoading = false
         }
+    }
+
     Column {
         androidx.compose.material3.TopAppBar(
             title = {
@@ -116,8 +148,8 @@ fun ComplaintApplicationScreen(navController: NavController,guard: String?) {
         }
         else{
             LazyColumn {
-                if (Forms.isNotEmpty()) {
-                    items(Forms) { form ->
+                if (forms.isNotEmpty()) {
+                    items(forms) { form ->
                         ApplicationItem(form=form, navController = navController, guard = guard)
                     }
                 } else {
@@ -135,7 +167,7 @@ fun ComplaintApplicationScreen(navController: NavController,guard: String?) {
 
 
 @Composable
-fun ApplicationItem(navController: NavController, form: UserComplaintRetrievalForm,guard: String?) {
+fun ApplicationItem(navController: NavController, form: UserComplaintRetrievalFormShort,guard: String?) {
     val gson = Gson()
     val jsonForm = gson.toJson(form)
     val encodedForm = URLEncoder.encode(jsonForm, StandardCharsets.UTF_8.toString())

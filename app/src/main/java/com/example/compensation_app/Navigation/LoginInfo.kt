@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.sqlite.MainViewModel
 import com.example.compensation_app.ui.theme.MyApplication
 import com.example.compensation_app.viewmodel.GuardViewModel
@@ -24,11 +25,14 @@ fun clearLoginStatus(context: Context) {
     editor.apply()
 }
 
-fun logoutUser(navController: NavController,mainViewModel: MainViewModel) {
+fun logoutUser(navController: NavController,mainViewModel: MainViewModel,emp: emp) {
     // Clear user session
 
     clearLoginStatus(context = MyApplication.appContext)
     SecureStorage.clearToken(MyApplication.appContext)
+    mainViewModel.deleteEmp(emp=emp)
+    mainViewModel.deleteCompensationShortCache()
+    mainViewModel.deleteComplaintShortCache()
     // Navigate to login screen
     navController.navigate(NavigationScreens.LoginScreen.name){
         popUpTo(NavigationScreens.AppHome.name) { inclusive = true } // Remove all previous screens from stack

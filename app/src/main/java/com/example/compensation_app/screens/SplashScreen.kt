@@ -4,6 +4,7 @@ package com.example.compensation_app.screens
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -28,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.R
 import androidx.compose.ui.graphics.graphicsLayer
@@ -50,86 +52,87 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(navController: NavController) {
-    val context= LocalContext.current
-    // Scale animation for the logo
-    val infiniteTransition = rememberInfiniteTransition()
-    val imageScale by infiniteTransition.animateFloat(
-        initialValue = 0.8f,
-        targetValue = 1.2f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "Image Scale Animation"
+    val context = LocalContext.current
+
+    // Controls the start of the animation
+    var startAnimation by remember { mutableStateOf(false) }
+
+    // Animate logo scale (0.8f -> 1f) for a smooth zoom-in effect
+    val logoScale by animateFloatAsState(
+        targetValue = if (startAnimation) 1f else 0.8f,
+        animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing)
     )
 
-    // Alpha animation for the blur effect
-    var startAnimation by remember { mutableStateOf(false) }
-    val blurEffect by animateFloatAsState(
-        targetValue = if (startAnimation) 1f else 0f, // Adjust alpha for overlay
-        animationSpec = tween(durationMillis = 1000, easing = LinearEasing)
+    // Animate logo alpha (fade-in)
+    val logoAlpha by animateFloatAsState(
+        targetValue = if (startAnimation) 1f else 0f,
+        animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing)
     )
+
+    // Animate background blur (from 16.dp blurred to clear)
+    val blurRadius by animateFloatAsState(
+        targetValue = if (startAnimation) 0f else 16f,
+        animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing)
+    )
+
+    // Retrieve shared preferences and login state
     val sharedPreferences: SharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     val isLoggedIn = sharedPreferences.getBoolean("is_logged_in", false)
     val mainViewModel: MainViewModel = hiltViewModel()
     var emp by remember {
-        mutableStateOf<emp>(
-            emp(emp_id = "",
-            mobile_number = "",
-            Name = "",
-            Circle_CG = "",
-            Circle1 = "",
-            roll = "guard",
-            subdivision = "",
-            division = "", range_ = "", beat = 0)
+        mutableStateOf(
+            emp(
+                emp_id = "",
+                mobile_number = "",
+                Name = "",
+                Circle_CG = "",
+                Circle1 = "",
+                roll = "guard",
+                subdivision = "",
+                division = "",
+                range_ = "",
+                beat = ""
+            )
         )
     }
     mainViewModel.GetGuard {
         if (it != null) {
-            emp=it
+            emp = it
         }
     }
+
+    // Start animations and navigate after delay
     LaunchedEffect(Unit) {
         startAnimation = true
-        delay(1000)
+        delay(1500) // Allow animation to complete before navigating
+
         if (isLoggedIn) {
-            if(emp.roll=="forestguard"){
-                navController.navigate(NavigationScreens.HomeScreen.name) {
+            when (emp.roll) {
+                "forestguard" -> navController.navigate(NavigationScreens.HomeScreen.name) {
                     popUpTo(NavigationScreens.AppHome.name) { inclusive = true }
                 }
-            }
-            else if(emp.roll=="deputyranger"){
-                navController.navigate(NavigationScreens.DeputyHomeScreen.name) {
+                "deputyranger" -> navController.navigate(NavigationScreens.DeputyHomeScreen.name) {
                     popUpTo(NavigationScreens.AppHome.name) { inclusive = true }
                 }
+                else -> {
+                    clearLoginStatus(context)
+                    navController.navigate(NavigationScreens.AppHome.name)
+                }
             }
-            else{
-                clearLoginStatus(context)
-                navController.navigate(NavigationScreens.AppHome.name)
-
-            }
-            // Navigate to the HomeScreen if user is logged in
-
         } else {
-            // Navigate to the LoginScreen if user is not logged in
             navController.navigate(NavigationScreens.AppHome.name)
         }
     }
 
-
-
     Box(
-        contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White) // Base background color
+            .background(Color.White),
+        contentAlignment = Alignment.Center
     ) {
-        // Background overlay to simulate blur
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White.copy(alpha = blurEffect)) // Adjust alpha to simulate blur
-        )
+        // Optional background image with animated blur for a premium effect.
+        // Replace R.drawable.background with your background image resource.
+
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -138,15 +141,17 @@ fun SplashScreen(navController: NavController) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
+            // Animated App Logo
             Image(
                 painter = painterResource(id = com.example.compensation_app.R.drawable.logo),
                 contentDescription = "App Logo",
                 modifier = Modifier
-                    .size(180.dp)
-                    .graphicsLayer(
-                        scaleX = imageScale,
-                        scaleY = imageScale
-                    )
+                    .size(240.dp)
+                    .graphicsLayer {
+                        scaleX = logoScale
+                        scaleY = logoScale
+                        alpha = logoAlpha
+                    }
                     .padding(bottom = 16.dp)
             )
         }

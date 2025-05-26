@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,8 +41,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.compensation_app.Backend.emp
 import com.example.compensation_app.Backend.RetrivalForm
+import com.example.compensation_app.Backend.RetrivalFormShort
 import com.example.compensation_app.Navigation.NavigationScreens
+import com.example.compensation_app.Navigation.logoutUser
 import com.example.compensation_app.components.getStatusLabel
+import com.example.compensation_app.sqlite.MainViewModel
 import com.example.compensation_app.viewmodel.GuardViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.Gson
@@ -56,6 +60,7 @@ fun PrevApplicationScreen(navController: NavController,guard: String?) {
         gson.fromJson(it, emp::class.java)
     }
     var isLoading by remember { mutableStateOf(true) }  // Track loading state
+    val mainViewModel: MainViewModel = hiltViewModel()
 
     val viewModel: GuardViewModel = hiltViewModel()
     val auth = FirebaseAuth.getInstance()
@@ -64,30 +69,51 @@ fun PrevApplicationScreen(navController: NavController,guard: String?) {
     Log.d("format", "$formattedNumber")
     Log.d("Ky problem hai", "PrevApplicationScreen: $gguard")
     var Forms by remember {
-        mutableStateOf<List<RetrivalForm>>(emptyList())
+        mutableStateOf<List<RetrivalFormShort>>(emptyList())
+    }
+    LaunchedEffect (Unit){
+        mainViewModel.getAllCompensationShortCache {
+            isLoading=false
+            Log.d("Forms from MainViewModel", "PrevApplicationScreen: $it")
+            Forms=it
+        }
     }
 
-    var PendingForYou by remember { mutableStateOf<List<RetrivalForm>>(emptyList()) }
-    var Pending by remember { mutableStateOf<List<RetrivalForm>>(emptyList()) }
-    var Accepted by remember { mutableStateOf<List<RetrivalForm>>(emptyList()) }
-    var Rejected by remember { mutableStateOf<List<RetrivalForm>>(emptyList()) }
-    if (gguard!=null)
-    if (gguard.emp_id.isNotEmpty()) {
-        viewModel.getFormsByID(GuardId = gguard.emp_id) { forms, message ->
-            isLoading=false
-            if (forms != null && forms.isNotEmpty()) {
-                Log.d("Initiasl", "PrevApplicationScreen: $forms")
-                Forms = forms
-                PendingForYou = forms.filter { it.status == "1" }
-                Pending = forms.filter { it.status in arrayOf("2","3", "4", "5") }
-                Accepted = forms.filter { it.status == "6" }
-                Rejected = forms.filter { it.status == "-1" }
-                Log.d("Forms", "Fetched Forms: $Forms")
-            } else {
-                Log.d("Forms", "No forms found or error: $message")
+
+    var PendingForYou by remember { mutableStateOf<List<RetrivalFormShort>>(emptyList()) }
+    var Pending by remember { mutableStateOf<List<RetrivalFormShort>>(emptyList()) }
+    var Accepted by remember { mutableStateOf<List<RetrivalFormShort>>(emptyList()) }
+    var Rejected by remember { mutableStateOf<List<RetrivalFormShort>>(emptyList()) }
+
+    if (gguard!=null) {
+        LaunchedEffect(Forms.isEmpty() && !isLoading) {
+            // Only fetch data if emp_id is not empty and forms are empty
+            if (gguard.emp_id.isNotEmpty() && Forms.isEmpty() && !isLoading) {
+                isLoading = true
+                viewModel.getFormsByID(GuardId = gguard.emp_id) { forms, message, code ->
+                    isLoading = false
+                    if (forms != null && forms.isNotEmpty()) {
+                        mainViewModel.addCompensationShortCache(forms = forms)
+                        Forms = forms
+                        Log.d("Forms", "Fetched Forms: $Forms")
+                    } else {
+                        if (code == 401 || code == 403) {
+                            logoutUser(
+                                navController = navController,
+                                mainViewModel = mainViewModel,
+                                emp = gguard
+                            )
+                        }
+                        Log.d("Forms", "No forms found or error: $message")
+                    }
+                }
             }
         }
     }
+    PendingForYou = Forms.filter { it.status == "1" }
+    Pending = Forms.filter { it.status in arrayOf("2","3", "4", "5") }
+    Accepted = Forms.filter { it.status == "6" }
+    Rejected = Forms.filter { it.status == "-1" }
 
     val encodedPending = URLEncoder.encode(gson.toJson(Pending), StandardCharsets.UTF_8.toString())
     val encodedPendingForYou = URLEncoder.encode(gson.toJson(PendingForYou), StandardCharsets.UTF_8.toString())
@@ -191,7 +217,7 @@ fun PrevApplicationScreen(navController: NavController,guard: String?) {
 
 
 @Composable
-fun ApplicationItem(navController: NavController, form: RetrivalForm,text:String) {
+fun ApplicationItem(navController: NavController, form: RetrivalFormShort,text:String) {
     val gson = Gson()
     val jsonForm = gson.toJson(form)
     val encodedForm = URLEncoder.encode(jsonForm, StandardCharsets.UTF_8.toString())

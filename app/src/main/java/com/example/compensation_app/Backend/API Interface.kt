@@ -47,10 +47,10 @@ interface ApiService {
 //    @GET("/compensationform/{forest_guard_id}")
 //    fun getCompensationFormsByGuardId(@Path("forest_guard_id") forestGuardId: String): Call<List<RetrivalForm>>
     @GET("/compensationform/forestguard/{forest_guard_id}")
-    fun getCompensationFormsByGuardId(@Path("forest_guard_id") forestGuardId: String): Call<List<RetrivalForm>>
+    fun getCompensationFormsByGuardId(@Path("forest_guard_id") forestGuardId: String): Call<List<RetrivalFormShort>>
 
     @GET("/compensationform/deputyranger/{dept_ranger_id}")
-    fun getCompensationFormsByDeptRangerID(@Path("dept_ranger_id") deptRangerId: String): Call<List<RetrivalForm>>
+    fun getCompensationFormsByDeptRangerID(@Path("dept_ranger_id") deptRangerId: String): Call<List<RetrivalFormShort>>
     @POST("/complaints/get_guard_complaints")  // Update with your actual endpoint
     fun getGuardComplaints(@Body request: GuardRepository.guardComplaintRequest): Call<GuardComplaintResponse>
 
@@ -61,6 +61,22 @@ interface ApiService {
     ): Call<UpdateFormStatusResponse>
     @POST("/complaints/reject_complaint")
     fun rejectComplaint(@Body request: RejectComplaintRequest): Call<ApiResponse>
+
+    @GET("/compensationform/one/{form_id}")
+    fun getEachCompensationForm(
+        @Path("form_id") formId: String
+    ): Call<RetrivalForm>
+
+    @GET("/complaints/one/{form_id}")  // Update with your actual endpoint
+    fun getEachComplaint( @Path("form_id") formId: String): Call<FullComplaintResponse>
+
+    @POST("/pdf")
+    fun getOrCreatePdf(@Body request: PdfRequest): Call<PdfResponse>
+
+
+
+
+
 
 
 

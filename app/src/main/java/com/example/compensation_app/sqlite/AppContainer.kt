@@ -37,5 +37,17 @@ object AppModule {
         return database.GuardDao()
     }
 
+    @Singleton
+    @Provides
+    fun provideCacheCompShortDao(database: AppDatabase): CacheCompForm {
+        return database.CacheCompForm()
+    }
+
+    @Singleton
+    @Provides
+    fun provideCacheComplaintShortDao(database: AppDatabase): CacheComplaint {
+        return database.CacheComplaint()
+    }
+
 
 }
