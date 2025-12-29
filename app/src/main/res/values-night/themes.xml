@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.COMPENSATION_APP" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- All colors are overridden automatically from colors.xml (night version) -->
+    </style>
+</resources>

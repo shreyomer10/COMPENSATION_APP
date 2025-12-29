@@ -1,0 +1,15 @@
+[33mc5ea012[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{0}: checkout: moving from recovered-branch to main
+[33mb7faea4[m[33m ([m[1;31morigin/recovered-branch[m[33m, [m[1;32mrecovered-branch[m[33m)[m HEAD@{1}: commit: Recovered first commit changes
+[33mc5ea012[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{2}: checkout: moving from c5ea0122382fdfa045a338fb754be2cd18f4394a to recovered-branch
+[33mc5ea012[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{3}: checkout: moving from main to c5ea012
+[33mc5ea012[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{4}: checkout: moving from c5ea0122382fdfa045a338fb754be2cd18f4394a to main
+[33mc5ea012[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{5}: checkout: moving from main to c5ea012
+[33mc5ea012[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{6}: reset: moving to c5ea012
+[33mc5ea012[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{7}: reset: moving to c5ea012
+[33mc5ea012[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{8}: reset: moving to c5ea012
+[33mc5ea012[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{9}: reset: moving to c5ea012
+[33mc5ea012[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{10}: rebase (finish): returning to refs/heads/main
+[33mc5ea012[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{11}: rebase (start): checkout c5ea0122382fdfa045a338fb754be2cd18f4394a
+[33m67dcd35[m HEAD@{12}: commit: first comit
+[33mc5ea012[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{13}: commit: first comit
+[33mcb022b0[m HEAD@{14}: clone: from https://github.com/Playerunidentified/COMPENSATION_APP
