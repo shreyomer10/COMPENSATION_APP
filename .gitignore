@@ -1,0 +1,25 @@
+# Firebase
+google-services.json
+**/google-services.json
+
+# Android local config
+local.properties
+
+# Gradle
+.gradle/
+**/*.bin
+
+# Android Studio
+.idea/
+*.iml
+
+# Build outputs
+build/
+**/build/
+
+# Secrets
+.env
+*.keystore
+*.jks
+*.pem
+*.key
