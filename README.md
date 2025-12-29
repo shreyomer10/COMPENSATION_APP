@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./screenshots/compensation.png" alt="Anugrah Logo" width="140"/>
+  <img src="./Screenshots/compensation.png" alt="Anugrah Logo" width="140"/>
 </p>
 
 <h2 align="center">🌲 Anugrah – Forest Compensation Mobile Application</h2>
@@ -35,11 +35,11 @@ The Android app is used by **field officers and forest department officials** to
   <tr>
     <td align="center">
       <b>Home & Application Flow</b><br/>
-      <img src="./screenshots/compensationapp.png" width="240"/>
+      <img src="./Screenshots/compensationapp.png" width="240"/>
     </td>
     <td align="center">
       <b>GPS Tracking & Form Details</b><br/>
-      <img src="./screenshots/compensationapp2.png" width="240"/>
+      <img src="./Screenshots/compensationapp2.png" width="240"/>
     </td>
   </tr>
 </table>
